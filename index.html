@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="img/icon/favicon.ico" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Google Fonts Roboto -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.min.css" />
+    <!-- Material Design Bootstrap -->
+    <link rel="stylesheet" href="vendor/mdbootstrap-4.0/css/mdb.min.css" />
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <title>Branch Predictor</title>
+</head>
+<body>
+    <div class="setup">
+        <div class="setup--steps">
+            <!-- Predictor type selector -->
+            <div id="step-0" class="setup--step setup--step-active">
+                <div class="setup--step--content">
+                    <h1>Select predictor type</h1>
+                    <div class="setup--step--options">
+
+                        <!-- 1 level predictor -->
+                        <div class="step0--option" onclick="getPredictorLevel(1); goSetupStep(1)">
+                            <img src="img/1-bit-sat-count.png" alt="1 level predictor">
+                            <h3>1 level</h3>
+                        </div>
+
+                        <!-- 2 level predictor -->
+                        <div class="step0--option" onclick="getPredictorLevel(2); goSetupStep(2)">
+                            <img src="img/2-level-predictor.png" alt="2 level predictor">
+                            <h3>2 levels</h3>
+                        </div>
+
+                        <!-- hybrid predictor -->
+                        <div id="hybridPredictorOption" class="step0--option" onclick="getPredictorLevel(3); goSetupStep(3)">
+                            <img src="img/hybrid-predictor.png" alt="hybrid predictor">
+                            <h3>Hybrid</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1 level predictor -->
+            <div id="step-1" class="setup--step">
+                <div class="setup--step--content">
+                    <h1>One level predictor</h1>
+                    <div class="setup--step--options">
+                        
+                        <!-- 1 bit saturation counter -->
+                        <div id="l1-1" class="step1--option" onclick="selectL1Bits(1)">
+                            <img src="img/1-bit-sat-count.png" alt="1-bit-saturation-counter">
+                            <h3>1 bit</h3>
+                        </div>
+
+                        <!-- 2 bit saturation counter -->
+                        <div id="l1-2" class="step1--option" onclick="selectL1Bits(2)">
+                            <img src="img/2-bit-sat-count.png" alt="2-bit-saturation-counter">
+                            <h3>2 bits</h3>
+                        </div>
+
+                        <!-- 3 bit saturation counter -->
+                        <div id="l1-3" class="step1--option" onclick="selectL1Bits(3)">
+                            <img src="img/3-bit-sat-count.png" alt="3-bit-saturation-counter">
+                            <h3>3 bits</h3>
+                        </div>
+                        
+                    </div>
+                    
+                    <!-- Custom saturation counter -->
+                    <div class="md-form form-lg l1-bits-wrapper">
+                        <input type="number" id="l1Bits" name="l1Bits" class="form-control form-control-lg" placeholder="bits" value="4">
+                        <label for="l1Bits">Number of bits</label>
+                    </div>
+
+                    <div class="create-btn-wrapper">
+                        <button class="btn btn-success" onclick="validateL1()">Create</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2 level predictor -->
+            <div id="step-2" class="setup--step">
+                <div class="setup--step--content">
+                    <h1>Two level predictor</h1>
+                    <form class="l2-form">
+
+                        <!-- Branch history -->
+                        <div class="form-group row">
+                            <label for="BHInput" class="col-sm-3 col-form-label">Branch history</label>
+                            <div class="col-sm-6">
+                                <div class="md-form mt-0">
+                                    <input type="number" class="form-control" id="BHInput">
+                                </div>
+                            </div>
+                            <span class="col-sm-3 col-form-label">jumps</span>
+                        </div>
+
+                        <!-- Predictor bits -->
+                        <div class="form-group row">
+                            <label for="PredictorBitsInput" class="col-sm-3 col-form-label">Predictor bits</label>
+                            <div class="col-sm-6">
+                                <div class="md-form mt-0">
+                                    <input type="number" class="form-control" id="PredictorBitsInput">
+                                </div>
+                            </div>
+                            <span class="col-sm-3 col-form-label">bits</span>
+                        </div>
+
+                        <!-- BHR -->
+                        <div class="form-group row">
+                            <label for="BHRInput" class="col-sm-3 col-form-label">BHR</label>
+                            <div class="col-sm-6">
+                                <div class="md-form mt-0">
+                                    <select id="BHRInput" class="browser-default custom-select">
+                                        <option value="global" selected>Global</option>
+                                        <option value="private">Private</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-3"></div>
+                        </div>
+
+                        <!-- PHT -->
+                        <div class="form-group row">
+                            <label for="PHTInput" class="col-sm-3 col-form-label">PHT</label>
+                            <div class="col-sm-6">
+                                <div class="md-form mt-0">
+                                    <select id="PHTInput" class="browser-default custom-select">
+                                        <option value="global">Global</option>
+                                        <option value="private" selected>Private</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-3"></div>
+                        </div>
+
+                    </form>
+                    <div class="create-btn-wrapper">
+                        <button class="btn btn-success" onclick="validateL2()">Create</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hybrid predictor -->
+            <div id="step-3" class="setup--step">
+                <div class="setup--step--content">
+                    <h1>Hybrid predictor</h1>
+                    <div class="setup--step--options">
+
+                        <!-- Predictor 1 -->
+                        <div class="step3--option-wrapper">
+                            <div id="predictor0" class="step3--option" onclick="configureHybrid(0)">
+                                <i id="subpredictor-0-icon" class="fa-solid fa-plus"></i>
+                                <h3 id="subpredictor-0-title">Select</h3>
+                            </div>
+                            <div class="subpred-del-wrapper">
+                                <i id="subpred-0-del-icon" class="fa-solid fa-trash" onclick="updateHybrid(0, 1)"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Predictor 2 -->
+                        <div class="step3--option-wrapper">
+                            <div id="predictor1" class="step3--option" onclick="configureHybrid(1)">
+                                <i id="subpredictor-1-icon" class="fa-solid fa-plus"></i>
+                                <h3 id="subpredictor-1-title">Select</h3>
+                            </div>
+                            <div class="subpred-del-wrapper">
+                                <i id="subpred-1-del-icon" class="fa-solid fa-trash" onclick="updateHybrid(1, 1)"></i>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="create-btn-wrapper">
+                        <button class="btn btn-success" onclick="validateHybrid()">Create</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="controls">
+            <i id="previous" class="fa-solid fa-arrow-left-long" onclick="stepBack()"></i>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script type="text/javascript" src="vendor/jquery/js/jquery.min.js"></script>
+    <!-- Popper JS -->
+    <script type="text/javascript" src="vendor/popper/js/popper.min.js"></script>
+    <!-- Bootstrap core JavaScript -->
+    <script type="text/javascript" src="vendor/bootstrap/js/bootstrap.min.js"></script>
+    <!-- MDB core JavaScript -->
+    <script type="text/javascript" src="vendor/mdbootstrap-4.0/js/mdb.min.js"></script>
+    <!-- Custom JS -->
+    <script type="text/javascript" src="js/main.js"></script>
+</body>
+</html>

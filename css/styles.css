@@ -1,0 +1,166 @@
+#step-0 {
+    display: flex;
+}
+
+body {
+    height: 100vh;
+}
+
+.setup {
+    height: 100vh;
+    background: #f2f4f4;
+}
+
+.setup--steps {
+    height: 90vh;
+}
+
+.setup--step {
+    height: inherit;
+    display: none;
+    visibility: hidden;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: all .3s;
+}
+
+.setup--step-active {
+    opacity: 1;
+    visibility: visible;
+    transition: all .3s;
+}
+
+.setup--step--options {
+    padding: 50px;
+}
+
+.setup--step--content > h1 {
+    text-align: center;
+}
+
+.setup--step--options {
+    display: flex;
+    justify-content: center;
+    
+}
+
+.step0--option, .step1--option {
+    max-width: 300px;
+    width: 30vw;
+    padding: 10px 0;
+}
+
+.step0--option > img, .step1--option > img {
+    padding: 20px;
+}
+
+.step3--option {
+    width: 300px;
+    padding: 30px;
+}
+
+.step0--option, .step1--option, .step3--option {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 0 30px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background-color: #ffffff;
+    cursor: pointer;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+    transition: box-shadow .3s;
+}
+
+.step0--option:hover, .step1--option:hover, .step3--option:hover {
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px;
+}
+
+.step0--option > h3, .step1--option > h3, .step3--option > h3 {
+    text-align: center;
+}
+
+.step3--option > i {
+    font-size: 9em;
+    text-align: center;
+    color: #d5d8dc;
+    font-weight: 200;
+    padding-bottom: 20px;
+}
+
+.l1-bits-wrapper {
+    margin: 0 auto;
+    width: 20vw;
+    font-size: 20em;
+    padding-bottom: 30px;
+}
+
+/* 2 level predictor */
+
+.l2-form {
+    width: 40vw;
+    min-width: 300px;
+    padding: 40px 0;
+}
+
+.controls {
+    height: 10vh;
+    text-align: center;
+    font-size: 2em;
+}
+
+.controls > i {
+    padding: 20px;
+    cursor: pointer;
+}
+
+/* Hybrid predictor */
+.selected-card {
+    color: green;
+    border: 1px solid green;
+    transition: all .3s;
+}
+
+.selected-card-icon {
+    color: green !important;
+}
+
+.subpred-del-wrapper {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.subpred-del-wrapper > i {
+    color: #c0392b;
+    font-size: 36px;
+    cursor: pointer;
+}
+
+.trash-enabled {
+    pointer-events: auto;
+    opacity: 1;
+}
+
+/* ---------------- */
+
+.valid-input {
+    color: green;
+    border-bottom: 1px solid green !important;
+    box-shadow: 0 1px 0 0 green !important;
+}
+
+.invalid-input {
+    color: red;
+    border-bottom: 1px solid red !important;
+    box-shadow: 0 1px 0 0 red !important;
+}
+
+.disabled {
+    pointer-events: none;
+    opacity: .4;
+}
+
+.create-btn-wrapper {
+    text-align: center;
+}
