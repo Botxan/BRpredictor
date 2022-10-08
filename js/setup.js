@@ -4,21 +4,21 @@ p = {
     bits: -1,
     brHistory: -1,
     bhr: "",
-    pht: "",
+    bht: "",
     subps: [ // hybrid predictors
         {
             level: -1,
             bits: -1,
             brHistory: -1,
             bhr: "",
-            pht: "",
+            bht: "",
         },
         {
             level: -1,
             bits: -1,
             brHistory: -1,
             bhr: "",
-            pht: "", 
+            bht: "", 
         }
     ]
 }
@@ -28,7 +28,7 @@ var currSubPred = -1;
 var currentStep = 0;
 
 // DOM elements
-l1Bits = $("#l1Bits");
+const l1Bits = $("#l1Bits");
 
 // Disable controls by default
 updateControls();
@@ -104,7 +104,7 @@ function updateHybrid(subPred, erase = 0) {
             bits: -1,
             brHistory: -1,
             bhr: "",
-            pht: "",
+            bht: "",
         }
 
         // Update DOM
@@ -181,6 +181,8 @@ function stepBack() {
  */
 function validateL1() {
     let bits = l1Bits.val().trim();
+    let bhr = $("#satCounterScope").val();
+    console.log(bhr);
 
     if (!bits.length || bits <= 0) 
         return alert("Bit number must be positive.");
@@ -191,10 +193,12 @@ function validateL1() {
     if (p.level === 3) { // hybrid sub predictor
         p.subps[currSubPred].level = 1;
         p.subps[currSubPred].bits = bits;
+        p.subps[currSubPred].bhr = bhr;
         updateHybrid(currSubPred);
         goSetupStep(3);
     } else {
         p.bits = bits;
+        p.bhr = bhr;
         launchPredictor();
     }
 }
@@ -222,14 +226,14 @@ function validateL2() {
         p.subps[currSubPred].bits = predBits;
         p.subps[currSubPred].brHistory = BH;
         p.subps[currSubPred].bhr = BHR;
-        p.subps[currSubPred].pht = PHT;
+        p.subps[currSubPred].bht = PHT;
         updateHybrid(currSubPred);
         goSetupStep(3);
     } else {
         p.bits = predBits;
         p.brHistory = BH;
         p.bhr = BHR;
-        p.pht = PHT;
+        p.bht = PHT;
         launchPredictor();
     }
 }
@@ -244,7 +248,8 @@ function validateHybrid() {
 }
 
 function launchPredictor() {
-    console.log("Launching predictor...", p);
+    sessionStorage.setItem("predictor", JSON.stringify(p));
+    window.location.href = "/predictor";
 }
 
-l1Bits.keyup(e => selectL1Bits(e.target.val()));
+l1Bits.on("input", (e) => selectL1Bits(e.target.value));

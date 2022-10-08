@@ -16,7 +16,7 @@
     <!-- Material Design Bootstrap -->
     <link rel="stylesheet" href="vendor/mdbootstrap-4.0/css/mdb.min.css" />
     <!-- Custom styles -->
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/setup.css">
 
     <title>Branch Predictor</title>
 </head>
@@ -77,9 +77,14 @@
                     </div>
                     
                     <!-- Custom saturation counter -->
-                    <div class="md-form form-lg l1-bits-wrapper">
-                        <input type="number" id="l1Bits" name="l1Bits" class="form-control form-control-lg" placeholder="bits" value="4">
-                        <label for="l1Bits">Number of bits</label>
+                    <div class="md-form input-group form-lg l1-bits-wrapper">
+                        <input type="number" id="l1Bits" name="l1Bits" class="form-control" placeholder="bits" value="4">
+                        <div class="input-group-append">
+                            <select id="satCounterScope" class="custom-select fform-control-lg">
+                                <option value="global">Global</option>
+                                <option value="local" selected>Local</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="create-btn-wrapper">
@@ -123,7 +128,7 @@
                                 <div class="md-form mt-0">
                                     <select id="BHRInput" class="browser-default custom-select">
                                         <option value="global" selected>Global</option>
-                                        <option value="private">Private</option>
+                                        <option value="local">Local</option>
                                     </select>
                                 </div>
                             </div>
@@ -137,7 +142,7 @@
                                 <div class="md-form mt-0">
                                     <select id="PHTInput" class="browser-default custom-select">
                                         <option value="global">Global</option>
-                                        <option value="private" selected>Private</option>
+                                        <option value="local" selected>Local</option>
                                     </select>
                                 </div>
                             </div>
@@ -200,6 +205,6 @@
     <!-- MDB core JavaScript -->
     <script type="text/javascript" src="vendor/mdbootstrap-4.0/js/mdb.min.js"></script>
     <!-- Custom JS -->
-    <script type="text/javascript" src="js/main.js"></script>
+    <script type="text/javascript" src="js/setup.js"></script>
 </body>
 </html>

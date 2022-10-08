@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="img/icon/favicon.ico" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Google Fonts Roboto -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.min.css" />
+    <!-- Material Design Bootstrap -->
+    <link rel="stylesheet" href="vendor/mdbootstrap-4.0/css/mdb.min.css" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/predictor.css">
+
+    <title>Branch Predictor</title>
+</head>
+<body>
+    <div class="row">
+        <div class="card col-3">
+            <div class="card-header">Input</div>
+            <div class="card-body d-flex">
+                <input type="file" id="fileInput" style="display: none" onchange="loadDataFile(this)" />
+                <button type="button" class="btn btn-primary flex-fill" Id="fileSelect">Import file</button>
+                <button type="button" class="btn btn-primary flex-fill" data-toggle="modal" data-target="#patternModal">Generate pattern</button>
+            </div>
+        </div>
+        <div class="card col-6">
+            <div class="card-header">Simulation messages</div>
+            <div class="card-body">
+                <div id="helper-text-wrapper"></div>
+            </div>
+            <div class="card-footer text-muted d-flex">
+                <button type="button" class="btn btn-primary flex-fill" onclick="next()">Next</button>
+                <button type="button" class="btn btn-primary flex-fill" onclick="fastForward()">Fast Forward</button>
+            </div>
+        </div>
+
+        <div class="card col-3">
+            <div class="card-header">Predictor description</div>
+            <div class="card-body">
+                <div id="helper-text-wrapper"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="card col-3">
+            <div class="card-body">
+                <ul id="jumpTables" class="nav nav-pills nav-fill" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="table-history-tab" data-toggle="tab" href="#table-history" role="tab" aria-controls="table-history" aria-selected="true">Table</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="sequence-history-tab" data-toggle="tab" href="#sequence-history" role="tab" aria-controls="sequence-history" aria-selected="false">Sequence</a>
+                    </li>
+                </ul>
+                <div id="history" class="tab-content">
+                    <div class="tab-pane fade show active" id="table-history" role="tabpanel" aria-labelledby="home-tab">
+                        <table id="histTable">
+                            <thead>
+                                <tr></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div class="tab-pane fade" id="sequence-history" role="tabpanel" aria-labelledby="profile-tab">
+                        <table id="seqTable" class="seq-table"><tr></tr></table>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-muted d-flex">
+                <button type="button" class="btn btn-primary flex-fill" onclick="clearData()">Clear</button>
+                <button type="button" class="btn btn-primary flex-fill" onclick="loadData()">Load Data</button>
+            </div>
+        </div>
+        <!-- Predictor execution -->
+        <div class="card col-6">
+            <div id="l1" class="l1">
+                <table id="l1BTB">
+                    <thead>
+                        <th>@</th>
+                        <th>@dest</th>
+                        <th>BHT</th>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="l2" class="l2"></div>
+            <div id="hybrid" class="hybrid"></div>
+        </div>
+        <div class="card col-3">
+            <div class="card-header">Performance</div>
+            <div class="card-body">
+                <canvas id="globalHM" id="labelChart"></canvas>
+                <canvas id="localHM" id="labelChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <!-- Button trigger modal -->
+  
+    <!-- Modal -->
+    <div id="patternModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="patternModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Generate pattern</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <button class="btn btn-primary btn-md m-0 px-3 py-2 z-depth-0 dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Predefined pattern</button>
+                            <div class="dropdown-menu">
+                                <span class="dropdown-item" onclick="updatePatternInput(0)">All 0's</span>
+                                <span class="dropdown-item" onclick="updatePatternInput(1)">All 1's</span>
+                                <span class="dropdown-item" onclick="updatePatternInput(2)">Alternate sequence</span>
+                                <span class="dropdown-item" onclick="updatePatternInput(3)">Alternate in pairs</span>
+                            </div>
+                        </div>                
+                        <input id="patternInput" type="text" class="form-control" placeholder="S1 0 S2 1 S3 1 S1 1 S3 1...">
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="patternTimes" class="col-sm-2 col-form-label">Repeat</label>
+                        <div class="col-sm-8">
+                            <div class="md-form mt-0">
+                            <input type="number" class="form-control" id="patternTimes" value="1">
+                            </div>
+                        </div>
+                        <label for="patternTimes" class="col-sm-2 col-form-label">times</label>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="getPattern()">Generate pattern</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script type="text/javascript" src="vendor/jquery/js/jquery.min.js"></script>
+    <!-- Popper JS -->
+    <script type="text/javascript" src="vendor/popper/js/popper.min.js"></script>
+    <!-- Bootstrap core JavaScript -->
+    <script type="text/javascript" src="vendor/bootstrap/js/bootstrap.min.js"></script>
+    <!-- MDB core JavaScript -->
+    <script type="text/javascript" src="vendor/mdbootstrap-4.0/js/mdb.min.js"></script>
+    <!-- Custom JS -->
+    <script type="text/javascript" src="js/predictor.js"></script>
+</body>
+</html>

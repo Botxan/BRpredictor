@@ -1,0 +1,22 @@
+body {
+    background-color: #f1f1f1;
+}
+
+.dropdown-item {
+    cursor: pointer;
+}
+
+.seq-table {
+    display: block;
+}
+
+.seq-table td {
+    display: inline-block;
+    max-width: 70px;
+    min-width: 70px;
+}
+
+/* predictor card */
+.l1, .l2, .hybrid {
+    display: none;
+}
