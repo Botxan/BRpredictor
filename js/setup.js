@@ -181,8 +181,7 @@ function stepBack() {
  */
 function validateL1() {
     let bits = l1Bits.val().trim();
-    let bhr = $("#satCounterScope").val();
-    console.log(bhr);
+    let bht = $("#satCounterScope").val();
 
     if (!bits.length || bits <= 0) 
         return alert("Bit number must be positive.");
@@ -193,12 +192,12 @@ function validateL1() {
     if (p.level === 3) { // hybrid sub predictor
         p.subps[currSubPred].level = 1;
         p.subps[currSubPred].bits = bits;
-        p.subps[currSubPred].bhr = bhr;
+        p.subps[currSubPred].bht = bht;
         updateHybrid(currSubPred);
         goSetupStep(3);
     } else {
         p.bits = bits;
-        p.bhr = bhr;
+        p.bht = bht;
         launchPredictor();
     }
 }

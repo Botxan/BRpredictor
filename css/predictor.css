@@ -1,9 +1,44 @@
 body {
     background-color: #f1f1f1;
+    padding: 20px;
+}
+
+td, th {
+    white-space: nowrap;
+    vertical-align: middle !important;
+}
+
+.jump-counter {
+    background-color: rgba(170, 183, 184, .7);
+    margin: 8px 6px 0 6px;
+    padding: 7px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .25), 0 1px 0 rgba(255, 255, 255, 0.25);
+    border-radius: 5px;
+    text-align: center;
 }
 
 .dropdown-item {
     cursor: pointer;
+}
+
+.tabs-card {
+    padding: 0;
+}
+
+.nav-link {
+    padding: 11.5px;
+}
+
+.tabs {
+    padding: 0;
+}
+
+.tab-content {
+    padding: 15px;
+}
+
+.history {
+    overflow: auto;
 }
 
 .seq-table {
@@ -16,7 +51,22 @@ body {
     min-width: 70px;
 }
 
+.description-card .card-body {
+    margin-top: -1px;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
 /* predictor card */
 .l1, .l2, .hybrid {
     display: none;
 }
+
+.execution {
+    overflow: auto;
+}
+
+.global-table td, .global-table th {
+    font-size: 1.2em;
+}
+

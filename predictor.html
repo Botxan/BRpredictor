@@ -21,16 +21,25 @@
     <title>Branch Predictor</title>
 </head>
 <body>
-    <div class="row">
-        <div class="card col-3">
+    <div class="row card-deck mb-3">
+        <div id="input" class="card col-lg-3 mx-2">
             <div class="card-header">Input</div>
-            <div class="card-body d-flex">
-                <input type="file" id="fileInput" style="display: none" onchange="loadDataFile(this)" />
-                <button type="button" class="btn btn-primary flex-fill" Id="fileSelect">Import file</button>
-                <button type="button" class="btn btn-primary flex-fill" data-toggle="modal" data-target="#patternModal">Generate pattern</button>
+            <div class="card-body">
+                <div class="d-flex">
+                    <input type="file" id="fileInput" style="display: none" onchange="loadDataFile(this)" />
+                    <button id="btnImport" type="button" class="btn btn-primary flex-fill">Import file</button>
+                    <button id="btnGenerate" type="button" class="btn btn-primary flex-fill" data-toggle="modal" data-target="#patternModal">Generate pattern</button>
+                </div>
+                <div id="jumpCounter" class="jump-counter">
+                    Waiting for input...
+                </div>
+            </div>
+            <div class="card-footer text-muted d-flex">
+                <button id="btnClear" type="button" class="btn btn-danger flex-fill" onclick="clearData()">Clear</button>
+                <button id="btnLoad" type="button" class="btn btn-success flex-fill" onclick="loadData()">Load Data</button>
             </div>
         </div>
-        <div class="card col-6">
+        <div class="card col-lg-6 mx-2">
             <div class="card-header">Simulation messages</div>
             <div class="card-body">
                 <div id="helper-text-wrapper"></div>
@@ -41,18 +50,24 @@
             </div>
         </div>
 
-        <div class="card col-3">
+        <div class="description-card card col-lg-3 mx-2">
             <div class="card-header">Predictor description</div>
             <div class="card-body">
-                <div id="helper-text-wrapper"></div>
+                <table id="descriptionTable" class="table table-sm table-strip">
+                    <tr><th>Type</th><td></td></tr>
+                    <tr><th>Counter bits</th><td></td></tr>
+                    <tr><th>Jump history</th><td></td></tr>
+                    <tr><th>BHR</th><td></td></tr>
+                    <tr><th>BHT</th><td></td></tr>
+                </table>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="card col-3">
-            <div class="card-body">
-                <ul id="jumpTables" class="nav nav-pills nav-fill" role="tablist">
+    <div class="row card-deck">
+        <div class="col-lg-3 mx-2 card tabs-card">
+            <div class="card-body tabs">
+                <ul id="jumpTables" class="nav nav-tabs nav-fill" role="tablist">
                     <li class="nav-item">
                         <a class="nav-link active" id="table-history-tab" data-toggle="tab" href="#table-history" role="tab" aria-controls="table-history" aria-selected="true">Table</a>
                     </li>
@@ -60,9 +75,9 @@
                         <a class="nav-link" id="sequence-history-tab" data-toggle="tab" href="#sequence-history" role="tab" aria-controls="sequence-history" aria-selected="false">Sequence</a>
                     </li>
                 </ul>
-                <div id="history" class="tab-content">
+                <div id="history" class="history tab-content">
                     <div class="tab-pane fade show active" id="table-history" role="tabpanel" aria-labelledby="home-tab">
-                        <table id="histTable">
+                        <table id="histTable" class="table table-striped table-sm text-center">
                             <thead>
                                 <tr></tr>
                             </thead>
@@ -70,35 +85,84 @@
                         </table>
                     </div>
                     <div class="tab-pane fade" id="sequence-history" role="tabpanel" aria-labelledby="profile-tab">
-                        <table id="seqTable" class="seq-table"><tr></tr></table>
+                        <table id="seqTable" class="seq-table table text-center table-striped"><tr></tr></table>
                     </div>
                 </div>
             </div>
-            <div class="card-footer text-muted d-flex">
-                <button type="button" class="btn btn-primary flex-fill" onclick="clearData()">Clear</button>
-                <button type="button" class="btn btn-primary flex-fill" onclick="loadData()">Load Data</button>
-            </div>
         </div>
+
         <!-- Predictor execution -->
-        <div class="card col-6">
-            <div id="l1" class="l1">
-                <table id="l1BTB">
-                    <thead>
-                        <th>@</th>
-                        <th>@dest</th>
-                        <th>BHT</th>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+        <div class="execution card col-lg-6 mx-2">
+            <div class="card-header">Predictor</div>
+            <div class="card-body">
+                <div id="l1" class="l1">
+                    <table id="l1BHT" class="table table-sm text-center global-table">
+                        <thead>
+                            <tr>
+                                <th>Global BHT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table id="l1BTB" class="table table-sm text-center">
+                        <thead>
+                            <th>@</th>
+                            <th>@dest</th>
+                            <th>BHT</th>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="l2" class="l2">
+                    <table id="l2BHR" class="table table-sm text-center global-table">
+                        <thead>
+                            <tr>
+                                <th>Global BHR</th>
+                            </tr>
+                            
+                        </thead>
+                        <tbody>
+                            <tr></tr>
+                        </tbody>
+                    </table>
+                    <table id="l2BHT" class="table table-sm text-center global-table">
+                        <thead>
+                            <tr>
+                                <th>Global BHT</th>
+                            </tr>
+                            <tr></tr>
+                        </thead>
+                        <tbody>
+                            <tr></tr>
+                        </tbody>
+                    </table>
+                    <table id="l2BTB" class="table table-sm text-center">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">@</th>
+                                <th rowspan="2">@dest</th>
+                                <th rowspan="2">BHR</th>
+                                <th>BHT</th>
+                            </tr>
+                            <tr>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
-            <div id="l2" class="l2"></div>
             <div id="hybrid" class="hybrid"></div>
         </div>
-        <div class="card col-3">
+
+        <div class="card col-lg-3 mx-2">
             <div class="card-header">Performance</div>
             <div class="card-body">
-                <canvas id="globalHM" id="labelChart"></canvas>
-                <canvas id="localHM" id="labelChart"></canvas>
+                <canvas id="globalHM"></canvas>
+                <canvas id="localHM"></canvas>
             </div>
         </div>
     </div>
