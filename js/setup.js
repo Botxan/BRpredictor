@@ -29,6 +29,7 @@ var currentStep = 0;
 
 // DOM elements
 const l1Bits = $("#l1Bits");
+const ctBits = $("#ctBits");
 
 // Disable controls by default
 updateControls();
@@ -50,6 +51,9 @@ function getPredictorLevel(l) {
 function goSetupStep(step) {
     currStepDOM = $("#step-" + currentStep);
     nextStepDOM = $("#step-" + step);
+
+    // Remove temporal sub predictor type when going backwards
+    if ((currentStep === 1 || currentStep === 2) && step === 0 && p.level === 3) p.subps[currSubPred].level = -1;
 
     // Fade out of current step
     currStepDOM.toggleClass("setup--step-active");
@@ -243,7 +247,15 @@ function validateL2() {
 function validateHybrid() {
     if (p.subps[0].level == -1 || p.subps[1].level == -1)
         return alert("Complete the configuration for both predictors.");
-    else launchPredictor();
+    else if (ctBits.val() <= 0)
+        return alert("The choice table bits must be positive.");
+    else {
+        p.bits = ctBits.val();
+        p.bht = $("#setArbiterScope").val();
+        console.log(p.bht);
+        launchPredictor();
+    }
+
 }
 
 function launchPredictor() {
@@ -252,3 +264,12 @@ function launchPredictor() {
 }
 
 l1Bits.on("input", (e) => selectL1Bits(e.target.value));
+ctBits.on("input", (e) => {
+    if (e.target.value < 1) {
+        ctBits.removeClass("valid-input");
+        ctBits.addClass("invalid-input");
+    } else {
+        ctBits.removeClass("invalid-input");
+        ctBits.addClass("valid-input");
+    }
+});

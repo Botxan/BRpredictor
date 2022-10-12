@@ -92,7 +92,6 @@ body {
 .l1-bits-wrapper {
     margin: 0 auto;
     width: 40vw;
-    font-size: 20em;
     padding-bottom: 30px;
 }
 
@@ -118,7 +117,7 @@ body {
 /* Hybrid predictor */
 .selected-card {
     color: green;
-    border: 1px solid green;
+    border: 2px solid green;
     transition: all .3s;
 }
 
@@ -163,4 +162,12 @@ body {
 
 .create-btn-wrapper {
     text-align: center;
+}
+
+.controls i {
+    transition: transform .3s;
+}
+
+.controls i:hover {
+    transform: translateX(-5px);
 }

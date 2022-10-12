@@ -77,10 +77,15 @@
                     </div>
                     
                     <!-- Custom saturation counter -->
-                    <div class="md-form input-group form-lg l1-bits-wrapper">
-                        <input type="number" id="l1Bits" name="l1Bits" class="form-control" placeholder="bits" value="4">
-                        <div class="input-group-append">
-                            <select id="satCounterScope" class="custom-select fform-control-lg">
+                    <div class="form-group row l1-bits-wrapper">
+                        <label for="l1Bits" class="col-sm-2 col-form-label mt-1">Custom </label>
+                        <div class="col-sm-7">
+                            <div class="md-form mt-0">
+                                <input type="number" class="form-control valid-input" id="l1Bits" value="4"·>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <select id="satCounterScope" class="custom-select form-control-lg">
                                 <option value="global">Global</option>
                                 <option value="local" selected>Local</option>
                             </select>
@@ -182,9 +187,25 @@
                             <div class="subpred-del-wrapper">
                                 <i id="subpred-1-del-icon" class="fa-solid fa-trash" onclick="updateHybrid(1, 1)"></i>
                             </div>
-                        </div>
-                        
+                        </div>  
                     </div>
+
+                    <!-- Choice table bits -->
+                    <div class="form-group row">
+                        <label for="ctBits" class="col-sm-3 col-form-label mt-1">Choice table bits</label>
+                        <div class="col-sm-6">
+                            <div class="md-form mt-0">
+                                <input type="number" class="form-control valid-input" id="ctBits" value="2"·>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <select id="setArbiterScope" class="custom-select form-control-lg">
+                                <option value="global">Global</option>
+                                <option value="local" selected>Local</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="create-btn-wrapper">
                         <button class="btn btn-success" onclick="validateHybrid()">Create</button>
                     </div>

@@ -8,6 +8,19 @@ td, th {
     vertical-align: middle !important;
 }
 
+#circuitsSVG {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+    overflow: hidden;
+}
+
+path {
+    z-index: -999
+}
+
 .jump-counter {
     background-color: rgba(170, 183, 184, .7);
     margin: 8px 6px 0 6px;
@@ -70,3 +83,99 @@ td, th {
     font-size: 1.2em;
 }
 
+/* Hybrid */
+.execution {
+    background-color: rgba(255, 255, 255,.4);
+    min-width: 420px;
+}
+
+.hybrid-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.hybrid {
+    width: 500px;
+    min-width: 390px;
+}
+
+.execution .card-header {
+    background-color: #ffffff;
+}
+
+.predictor-block {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 150px;
+    height: 50px;
+    border: 2px solid #000000;
+}
+
+.p-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.p1 {
+    background-color: #99CC00;
+    margin-top: 14px;
+}
+
+.p2 {
+    background-color: #FFC000;
+    margin-bottom: 14px;
+}
+
+.p1, .p2, .arbiter {
+    cursor: pointer;
+}
+
+.arbiter {
+    background-color: #E2F0D9;
+}
+
+.arbiter-wrapper, .mux-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.mux-border {
+    position: relative;
+    width: 76px;
+    height: 156px;
+    box-sizing: border-box;
+    clip-path: polygon(0 0, 100% 20.5%, 100% 79.5%, 0% 100%);
+    background: #000000;
+}
+
+.mux {
+    position: absolute;
+    top: 5px;
+    left: 3px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 70px;
+    height: 146px;
+    background-color: coral;
+    clip-path: polygon(0 0, 100% 20%, 100% 80%, 0% 100%);
+}
+
+.mux > div {
+    margin-left: 7px;
+}
+
+.result-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.p-scroll {
+    overflow: auto;
+}
