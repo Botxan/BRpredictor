@@ -826,7 +826,10 @@ function nextL2(subPred = -1) {
 					bhtDOM.find(`tbody tr td:eq(${bhrVal})`).html((++bht[bhrVal].state).toString(2).padStart(pr.bits, '0'));	
 					message(subPred, `The ${pr.bht} BHT state is ${isCorrect ? (bht[bhrVal].take() ? `increased`: `decreased`) : (bht[bhrVal].take() ? `decreased` : `increased`)} to ${bht[bhrVal].state.toString(2).padStart(pr.bits, '0')}.`);
 				} else {
-					row.find(`td:eq(${bhrVal+3})`).html((++currEntry.bht[bhrVal].state).toString(2).padStart(pr.bits, '0'));
+                    // if correct and taken => increase
+                    // if incorrect and take => decrease
+                    currEntry.bht[bhrVal].state += currEntry.bht[bhrVal].take() ? (isCorrect ? 1 : -1) : (isCorrect ? -1 : 1);
+					row.find(`td:eq(${bhrVal+3})`).html(currEntry.bht[bhrVal].state.toString(2).padStart(pr.bits, '0'));
 					message(subPred, `The ${pr.bht} BHT state is ${isCorrect ? (currEntry.bht[bhrVal].take() ? `increased`: `decreased`) : (currEntry.bht[bhrVal].take() ? `decreased` : `increased`)} to ${currEntry.bht[bhrVal].state.toString(2).padStart(pr.bits, '0')}.`);
 				}		
 			} else message(subPred, `The ${pr.bht} BHT stays in ${(pr.bht === "global" ? bht[bhrVal].state : currEntry.bht[bhrVal].state).toString(2).padStart(pr.bits, '0')} state.`)

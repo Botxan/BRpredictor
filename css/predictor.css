@@ -113,8 +113,7 @@ path {
     overflow: auto;
 }
 
-.hist-table, .seq-table {
-    display: block;
+.tab-pane {
     max-height: 55vh;
     overflow: auto;
 }
