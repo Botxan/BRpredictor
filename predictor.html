@@ -21,239 +21,395 @@
     <title>Branch Predictor</title>
 </head>
 <body>
-    <!-- SVG for simulator circuits -->
-	<svg id="circuitsSVG"></svg>
-
-    <div class="row card-deck mb-3">
-        <div id="input" class="card col-lg-3 mx-2">
-            <div class="card-header">Input</div>
-            <div class="card-body">
-                <div class="d-flex">
+    <div id="main">
+        <!-- SVG for simulator circuits -->
+        <svg id="circuitsSVG"></svg>
+    
+        <div class="row card-deck mb-3">
+            <div id="input" class="input-card card col-lg-3 mx-2">
+                <div class="card-header">Input</div>
+                <div class="card-body text-center">
                     <input type="file" id="fileInput" style="display: none" onchange="loadDataFile(this)" />
-                    <button id="btnImport" type="button" class="btn btn-primary flex-fill">Import file</button>
-                    <button id="btnGenerate" type="button" class="btn btn-primary flex-fill" data-toggle="modal" data-target="#patternModal">Generate pattern</button>
+                    <button id="btnImport" type="button" class="btn btn-primary">Import file</button>
+                    <button id="btnGenerate" type="button" class="btn btn-primary" data-toggle="modal" data-target="#patternModal">Gen. pattern</button>
+                    <div id="jumpCounter" class="jump-counter">
+                        Waiting for input...
+                    </div>
                 </div>
-                <div id="jumpCounter" class="jump-counter">
-                    Waiting for input...
+                <div class="card-footer text-center">
+                    <button id="btnClear" type="button" class="btn btn-danger flex-fill" onclick="location.reload()">Reset</button>
+                    <button id="btnLoad" type="button" class="btn btn-success flex-fill" onclick="loadCommonData()">Load Data</button>
                 </div>
             </div>
-            <div class="card-footer text-muted d-flex">
-                <button id="btnClear" type="button" class="btn btn-danger flex-fill" onclick="clearData()">Clear</button>
-                <button id="btnLoad" type="button" class="btn btn-success flex-fill" onclick="loadCommonData()">Load Data</button>
+            <div class="card col-lg-6 mx-2">
+                <div class="card-header">Simulation messages</div>
+                <div class="card-body">
+                    <div id="helper-text-wrapper"></div>
+                </div>
+                <div class="card-footer text-center sim-controls">
+                    <i id="btnNext" class="fa-solid fa-angle-right" onclick="next()" data-toggle="tooltip" data-placement="bottom" title="Next step"></i>
+                    <i id="btnFFIns" class="fa-solid fa-angles-right" onclick="ffIns()" data-toggle="tooltip" data-placement="bottom" title="Finish current instruction"></i>
+                    <i id="btnFFProgram" onclick="ffProgram()" class="fa-solid fa-forward-fast" data-toggle="tooltip" data-placement="bottom" title="Finish program"></i>
+                </div>
+            </div>
+    
+            <div class="description-card card col-lg-3 mx-2">
+                <div class="card-header">Predictor description</div>
+                <div class="card-body">
+                    <table id="descriptionTable" class="table table-sm table-strip">
+                        <tr><th>Type</th><td></td></tr>
+                        <tr><th>Counter bits</th><td></td></tr>
+                        <tr><th>Jump history</th><td></td></tr>
+                        <tr><th>BHR</th><td></td></tr>
+                        <tr><th>BHT</th><td></td></tr>
+                    </table>
+                </div>
             </div>
         </div>
-        <div class="card col-lg-6 mx-2">
-            <div class="card-header">Simulation messages</div>
-            <div class="card-body">
-                <div id="helper-text-wrapper"></div>
+    
+        <div class="row card-deck">
+            <div class="col-lg-3 mx-2 card tabs-card">
+                <div class="card-body tabs">
+                    <ul id="jumpTables" class="nav nav-tabs nav-fill" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="sequence-history-tab" data-toggle="tab" href="#sequence-history" role="tab" aria-controls="sequence-history" aria-selected="active">Sequence</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="table-history-tab" data-toggle="tab" href="#tableHistory" role="tab" aria-controls="table-history" aria-selected="false">Table</a>
+                        </li>      
+                    </ul>
+                    <div id="history" class="history tab-content">
+                        <div class="tab-pane fade show active" id="sequence-history" role="tabpanel" aria-labelledby="sequence-tab">
+                            <table id="seqTable" class="seq-table table text-center table-striped text-center"><tr></tr></table>
+                        </div>
+                        <div id="tableHistory" class="tab-pane fade table-history" role="tabpanel" aria-labelledby="home-tab">
+                            <table id="histTable" class="hist-table table table-striped table-sm text-center">
+                                <thead>
+                                    <tr></tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-footer text-muted d-flex">
-                <button id="btnNext" type="button" class="btn btn-primary flex-fill" onclick="next()">Next</button>
-                <button id="btnFastForward" type="button" class="btn btn-primary flex-fill" onclick="fastForward()">Fast Forward</button>
-            </div>
-        </div>
-
-        <div class="description-card card col-lg-3 mx-2">
-            <div class="card-header">Predictor description</div>
-            <div class="card-body">
-                <table id="descriptionTable" class="table table-sm table-strip">
-                    <tr><th>Type</th><td></td></tr>
-                    <tr><th>Counter bits</th><td></td></tr>
-                    <tr><th>Jump history</th><td></td></tr>
-                    <tr><th>BHR</th><td></td></tr>
-                    <tr><th>BHT</th><td></td></tr>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div class="row card-deck">
-        <div class="col-lg-3 mx-2 card tabs-card">
-            <div class="card-body tabs">
-                <ul id="jumpTables" class="nav nav-tabs nav-fill" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" id="table-history-tab" data-toggle="tab" href="#table-history" role="tab" aria-controls="table-history" aria-selected="true">Table</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="sequence-history-tab" data-toggle="tab" href="#sequence-history" role="tab" aria-controls="sequence-history" aria-selected="false">Sequence</a>
-                    </li>
-                </ul>
-                <div id="history" class="history tab-content">
-                    <div class="tab-pane fade show active" id="table-history" role="tabpanel" aria-labelledby="home-tab">
-                        <table id="histTable" class="table table-striped table-sm text-center">
+    
+            <!-- Predictor execution -->
+            <div class="execution card col-lg-6 mx-2">
+                <div class="card-header">Predictor</div>
+                <div class="card-body">
+                    <div id="l1" class="l1">
+                        <table id="l1BHT" class="table table-sm text-center global-table">
                             <thead>
-                                <tr></tr>
+                                <tr>
+                                    <th>Global BHT</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table id="l1BTB" class="table table-sm text-center">
+                            <thead>
+                                <th>@</th>
+                                <th>@dest</th>
+                                <th>BHT</th>
                             </thead>
                             <tbody></tbody>
                         </table>
                     </div>
-                    <div class="tab-pane fade" id="sequence-history" role="tabpanel" aria-labelledby="profile-tab">
-                        <table id="seqTable" class="seq-table table text-center table-striped"><tr></tr></table>
+                    <div id="l2" class="l2">
+                        <table id="l2BHR" class="table table-sm text-center global-table">
+                            <thead>
+                                <tr>
+                                    <th>Global BHR</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table id="l2BHT" class="table table-sm text-center global-table">
+                            <thead>
+                                <tr>
+                                    <th>Global BHT</th>
+                                </tr>
+                                <tr></tr>
+                            </thead>
+                            <tbody>
+                                <tr></tr>
+                            </tbody>
+                        </table>
+                        <table id="l2BTB" class="table table-sm text-center">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">@</th>
+                                    <th rowspan="2">@dest</th>
+                                    <th rowspan="2">BHR</th>
+                                    <th>BHT</th>
+                                </tr>
+                                <tr>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Predictor execution -->
-        <div class="execution card col-lg-6 mx-2">
-            <div class="card-header">Predictor</div>
-            <div class="card-body">
-                <div id="l1" class="l1">
-                    <table id="l1BHT" class="table table-sm text-center global-table">
-                        <thead>
-                            <tr>
-                                <th>Global BHT</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <table id="l1BTB" class="table table-sm text-center">
-                        <thead>
-                            <th>@</th>
-                            <th>@dest</th>
-                            <th>BHT</th>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-                <div id="l2" class="l2">
-                    <table id="l2BHR" class="table table-sm text-center global-table">
-                        <thead>
-                            <tr>
-                                <th>Global BHR</th>
-                            </tr>
-                            
-                        </thead>
-                        <tbody>
-                            <tr></tr>
-                        </tbody>
-                    </table>
-                    <table id="l2BHT" class="table table-sm text-center global-table">
-                        <thead>
-                            <tr>
-                                <th>Global BHT</th>
-                            </tr>
-                            <tr></tr>
-                        </thead>
-                        <tbody>
-                            <tr></tr>
-                        </tbody>
-                    </table>
-                    <table id="l2BTB" class="table table-sm text-center">
-                        <thead>
-                            <tr>
-                                <th rowspan="2">@</th>
-                                <th rowspan="2">@dest</th>
-                                <th rowspan="2">BHR</th>
-                                <th>BHT</th>
-                            </tr>
-                            <tr>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-                <div class="hybrid-wrapper">
-                    <div id="hybrid" class="hybrid">
-                        <div class="row mb-5">
-                            <div class="col-5"></div>
-                            <div class="col-5 arbiter-wrapper">
-                                <div id="arbiter" class="arbiter predictor-block" data-toggle="modal" data-target="#arbiterModal">arbiter</div>
+                    <div class="hybrid-wrapper">
+                        <div id="hybrid" class="hybrid">
+                            <div class="row mb-5">
+                                <div class="col-5"></div>
+                                <div class="col-5 arbiter-wrapper">
+                                    <div id="arbiter" class="arbiter predictor-block" data-toggle="modal" data-target="#arbiterModal">Arbiter</div>
+                                </div>
+                                <div class="col-2"></div>
                             </div>
-                            <div class="col-2"></div>
-                        </div>
-                        <div class="row">
-                            <div class="col-5 p-wrapper">
-                                <div id="p1" class="p1 predictor-block" data-toggle="modal" data-target="#p1Modal">p1</div>
-                                <div id="p2" class="p2 predictor-block" data-toggle="modal" data-target="#p2Modal">p2</div>
-                            </div>
-                            <div id="mux" class="col-5 mux-wrapper">
-                                <div id="mux-border" class="mux-border">
-                                    <div class="mux">
-                                        <div>0</div>
-                                        <div>1</div>
+                            <div class="row">
+                                <div class="col-5 p-wrapper">
+                                    <div id="p1" class="p1 predictor-block" data-toggle="modal" data-target="#p1Modal">P1</div>
+                                    <div id="p2" class="p2 predictor-block" data-toggle="modal" data-target="#p2Modal">P2</div>
+                                </div>
+                                <div id="mux" class="col-5 mux-wrapper">
+                                    <div id="mux-border" class="mux-border">
+                                        <div class="mux">
+                                            <div>0</div>
+                                            <div>1</div>
+                                        </div>
                                     </div>
                                 </div>
+                                <div class="col-2 result-wrapper">
+                                    <div id="result" class="result">Prediction</div>
+                                </div>
+        
                             </div>
-                            <div class="col-2 result-wrapper">
-                                <div id="result" class="result">result</div>
-                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
     
+            <div class="performance-card card col-lg-3 mx-2">
+                <div class="card-header">Performance</div>
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <canvas id="globalHM"></canvas>
+                    <hr>
+                    <canvas id="localHM"></canvas>
+                </div>
+            </div>
+        </div>
+      
+        <!-- Pattern generator modal -->
+        <div id="patternModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="patternModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Generate pattern</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <button class="btn btn-primary btn-md m-0 px-3 py-2 z-depth-0 dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Predefined pattern</button>
+                                <div class="dropdown-menu">
+                                    <span class="dropdown-item" onclick="updatePatternInput(0)">All 0's</span>
+                                    <span class="dropdown-item" onclick="updatePatternInput(1)">All 1's</span>
+                                    <span class="dropdown-item" onclick="updatePatternInput(2)">Alternate sequence</span>
+                                    <span class="dropdown-item" onclick="updatePatternInput(3)">Alternate in pairs</span>
+                                </div>
+                            </div>                
+                            <input id="patternInput" type="text" class="form-control" placeholder="S1 0 S2 1 S3 1 S1 1 S3 1...">
+                        </div>
+    
+                        <div class="form-group row">
+                            <label for="patternTimes" class="col-sm-2 col-form-label">Repeat</label>
+                            <div class="col-sm-8">
+                                <div class="md-form mt-0">
+                                <input type="number" class="form-control" id="patternTimes" value="1">
+                                </div>
+                            </div>
+                            <label for="patternTimes" class="col-sm-2 col-form-label">times</label>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-primary" onclick="getPattern()">Generate pattern</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="card col-lg-3 mx-2">
-            <div class="card-header">Performance</div>
-            <div class="card-body">
-                <canvas id="globalHM"></canvas>
-                <canvas id="localHM"></canvas>
-            </div>
-        </div>
-    </div>
-    <!-- Button trigger modal -->
-  
-    <!-- Pattern generator modal -->
-    <div id="patternModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="patternModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Generate pattern</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="input-group mb-3">
-                        <div class="input-group-prepend">
-                            <button class="btn btn-primary btn-md m-0 px-3 py-2 z-depth-0 dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Predefined pattern</button>
-                            <div class="dropdown-menu">
-                                <span class="dropdown-item" onclick="updatePatternInput(0)">All 0's</span>
-                                <span class="dropdown-item" onclick="updatePatternInput(1)">All 1's</span>
-                                <span class="dropdown-item" onclick="updatePatternInput(2)">Alternate sequence</span>
-                                <span class="dropdown-item" onclick="updatePatternInput(3)">Alternate in pairs</span>
-                            </div>
-                        </div>                
-                        <input id="patternInput" type="text" class="form-control" placeholder="S1 0 S2 1 S3 1 S1 1 S3 1...">
+    
+        <!-- P1 modal -->
+        <div class="modal fade left" id="p1Modal" tabindex="-1" role="dialog" aria-labelledby="p1ModalLabel"
+        aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-full-height modal-left modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title w-100">Predictor 1</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
-
-                    <div class="form-group row">
-                        <label for="patternTimes" class="col-sm-2 col-form-label">Repeat</label>
-                        <div class="col-sm-8">
-                            <div class="md-form mt-0">
-                            <input type="number" class="form-control" id="patternTimes" value="1">
-                            </div>
+                    <div class="modal-body">
+                        <div id="p1l1" class="l1 p-scroll">
+                            <table id="p1l1BHT" class="table table-sm text-center global-table">
+                                <thead>
+                                    <tr>
+                                        <th>Global BHT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table id="p1l1BTB" class="table table-sm text-center">
+                                <thead>
+                                    <th>@</th>
+                                    <th>@dest</th>
+                                    <th>BHT</th>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
                         </div>
-                        <label for="patternTimes" class="col-sm-2 col-form-label">times</label>
+                        <div id="p1l2" class="l2 p-scroll">
+                            <table id="p1l2BHR" class="table table-sm text-center global-table">
+                                <thead>
+                                    <tr>
+                                        <th>Global BHR</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table id="p1l2BHT" class="table table-sm text-center global-table">
+                                <thead>
+                                    <tr>
+                                        <th>Global BHT</th>
+                                    </tr>
+                                    <tr></tr>
+                                </thead>
+                                <tbody>
+                                    <tr></tr>
+                                </tbody>
+                            </table>
+                            <table id="p1l2BTB" class="table table-sm text-center">
+                                <thead>
+                                    <tr>
+                                        <th rowspan="2">@</th>
+                                        <th rowspan="2">@dest</th>
+                                        <th rowspan="2">BHR</th>
+                                        <th>BHT</th>
+                                    </tr>
+                                    <tr>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- P1 modal -->
-    <div class="modal fade left" id="p1Modal" tabindex="-1" role="dialog" aria-labelledby="p1ModalLabel"
-    aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable modal-full-height modal-left modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title w-100">Predictor 1</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+    
+        <!-- P2 modal -->
+        <div class="modal fade right" id="p2Modal" tabindex="-1" role="dialog" aria-labelledby="p2ModalLabel"
+        aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-full-height modal-right modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title w-100">Predictor 2</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="p2l1" class="l1 p-scroll">
+                            <table id="p2l1BHT" class="table table-sm text-center global-table">
+                                <thead>
+                                    <tr>
+                                        <th>Global BHT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table id="p2l1BTB" class="table table-sm text-center">
+                                <thead>
+                                    <th>@</th>
+                                    <th>@dest</th>
+                                    <th>BHT</th>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div id="p2l2" class="l2 p-scroll">
+                            <table id="p2l2BHR" class="table table-sm text-center global-table">
+                                <thead>
+                                    <tr>
+                                        <th>Global BHR</th>
+                                    </tr>   
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <table id="p2l2BHT" class="table table-sm text-center global-table">
+                                <thead>
+                                    <tr>
+                                        <th>Global BHT</th>
+                                    </tr>
+                                    <tr></tr>
+                                </thead>
+                                <tbody>
+                                    <tr></tr>
+                                </tbody>
+                            </table>
+                            <table id="p2l2BTB" class="table table-sm text-center">
+                                <thead>
+                                    <tr>
+                                        <th rowspan="2">@</th>
+                                        <th rowspan="2">@dest</th>
+                                        <th rowspan="2">BHR</th>
+                                        <th>BHT</th>
+                                    </tr>
+                                    <tr>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <div id="p1l1" class="l1 p-scroll">
-                        <table id="p1l1BHT" class="table table-sm text-center global-table">
+            </div>
+        </div>
+    
+        <!-- Arbiter modal -->
+        <div id="arbiterModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="arbiterModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Arbiter</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table id="arbiterCounter" class="table table-sm text-center global-table">
                             <thead>
                                 <tr>
-                                    <th>Global BHT</th>
+                                    <th>Saturated counter</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -262,47 +418,14 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <table id="p1l1BTB" class="table table-sm text-center">
-                            <thead>
-                                <th>@</th>
-                                <th>@dest</th>
-                                <th>BHT</th>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                    <div id="p1l2" class="l2 p-scroll">
-                        <table id="p1l2BHR" class="table table-sm text-center global-table">
+                        <table id="choiceTable" class="table table-sm text-center">
                             <thead>
                                 <tr>
-                                    <th>Global BHR</th>
+                                    <th colspan="2">Choice table</th>
                                 </tr>
-                                
-                            </thead>
-                            <tbody>
-                                <tr></tr>
-                            </tbody>
-                        </table>
-                        <table id="p1l2BHT" class="table table-sm text-center global-table">
-                            <thead>
                                 <tr>
-                                    <th>Global BHT</th>
-                                </tr>
-                                <tr></tr>
-                            </thead>
-                            <tbody>
-                                <tr></tr>
-                            </tbody>
-                        </table>
-                        <table id="p1l2BTB" class="table table-sm text-center">
-                            <thead>
-                                <tr>
-                                    <th rowspan="2">@</th>
-                                    <th rowspan="2">@dest</th>
-                                    <th rowspan="2">BHR</th>
+                                    <th>@</th>
                                     <th>BHT</th>
-                                </tr>
-                                <tr>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -312,124 +435,9 @@
             </div>
         </div>
     </div>
-
-    <!-- P2 modal -->
-    <div class="modal fade right" id="p2Modal" tabindex="-1" role="dialog" aria-labelledby="p2ModalLabel"
-    aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable modal-full-height modal-right modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title w-100">Predictor 2</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div id="p2l1" class="l1 p-scroll">
-                        <table id="p2l1BHT" class="table table-sm text-center global-table">
-                            <thead>
-                                <tr>
-                                    <th>Global BHT</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <table id="p2l1BTB" class="table table-sm text-center">
-                            <thead>
-                                <th>@</th>
-                                <th>@dest</th>
-                                <th>BHT</th>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                    <div id="p2l2" class="l2 p-scroll">
-                        <table id="p2l2BHR" class="table table-sm text-center global-table">
-                            <thead>
-                                <tr>
-                                    <th>Global BHR</th>
-                                </tr>
-                                
-                            </thead>
-                            <tbody>
-                                <tr></tr>
-                            </tbody>
-                        </table>
-                        <table id="p2l2BHT" class="table table-sm text-center global-table">
-                            <thead>
-                                <tr>
-                                    <th>Global BHT</th>
-                                </tr>
-                                <tr></tr>
-                            </thead>
-                            <tbody>
-                                <tr></tr>
-                            </tbody>
-                        </table>
-                        <table id="p2l2BTB" class="table table-sm text-center">
-                            <thead>
-                                <tr>
-                                    <th rowspan="2">@</th>
-                                    <th rowspan="2">@dest</th>
-                                    <th rowspan="2">BHR</th>
-                                    <th>BHT</th>
-                                </tr>
-                                <tr>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Arbiter modal -->
-    <div id="arbiterModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="arbiterModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Arbiter</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <table id="arbiterCounter" class="table table-sm text-center global-table">
-                        <thead>
-                            <tr>
-                                <th>Saturated counter</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <table id="choiceTable" class="table table-sm text-center">
-                        <thead>
-                            <tr>
-                                <th colspan="2">Choice table</th>
-                            </tr>
-                            <tr>
-                                <th>@</th>
-                                <th>BHT</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-                
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" onclick="getPattern()">Generate pattern</button>
-                </div>
-            </div>
+    <div id="loader" class="loader">
+        <div class="spinner-wrapper">
+            <div class="spinner spinner-border text-primary" role="status">
         </div>
     </div>
 

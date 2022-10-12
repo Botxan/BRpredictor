@@ -48,6 +48,10 @@ function getPredictorLevel(l) {
     else p.level = l;
 }
 
+/**
+ * Changes the setup context to the next step.
+ * @param {Number} step the next step
+ */
 function goSetupStep(step) {
     currStepDOM = $("#step-" + currentStep);
     nextStepDOM = $("#step-" + step);
@@ -112,14 +116,14 @@ function updateHybrid(subPred, erase = 0) {
         }
 
         // Update DOM
-        subPredDiv.removeClass("selected-card");
+        subPredDiv.removeClass("selected-card no-events");
         icon.removeClass("fa-plus selected-card-icon");
         icon.addClass("fa-plus");
         delIcon.addClass("disabled");
         predDescription.text("Select");
     } else {
         // Update DOM
-        subPredDiv.addClass("selected-card");
+        subPredDiv.addClass("selected-card no-events");
         icon.removeClass("fa-plus");
         icon.addClass("fa-circle-check selected-card-icon");
         delIcon.removeClass("disabled");
@@ -151,6 +155,11 @@ function updateControls() {
         {"pointer-events": "none", "opacity": ".4"});
 }
 
+/**
+ * Updates DOM elements based on user selection on what regards to level one
+ * predictor bits.
+ * @param {Number} bits level one predictor bits
+ */
 function selectL1Bits(bits) {
     let panels = [$("#l1-1"), $("#l1-2"), $("#l1-3")];
 
@@ -170,6 +179,9 @@ function selectL1Bits(bits) {
     }      
 }
 
+/**
+ * Changes the context of the setup to one step back.
+ */
 function stepBack() { 
     if (currentStep === 0 && p.level === 3) goSetupStep(3);
     else {
@@ -258,12 +270,22 @@ function validateHybrid() {
 
 }
 
+/**
+ * Ends the configuration and redirects user to the simulator execution site.
+ */
 function launchPredictor() {
     sessionStorage.setItem("predictor", JSON.stringify(p));
     window.location.href = "/predictor";
 }
 
+/**
+ * Updates the interface based on introduced bits for level 1 predictor.
+ */
 l1Bits.on("input", (e) => selectL1Bits(e.target.value));
+
+/**
+ * Updates the interface based on introuced bits for arbiter.
+ */
 ctBits.on("input", (e) => {
     if (e.target.value < 1) {
         ctBits.removeClass("valid-input");

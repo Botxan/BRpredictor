@@ -1,53 +1,53 @@
-// p = JSON.parse(sessionStorage.getItem("predictor"));
-// Temporal Predictor object for testing purposes
-p = {
-	level: 3,
-	bits: 2,
-	brHistory: -1,
-	bhr: "",
-	bht: "global",
-	subps: [ // hybrid predictors
-		{
-			level: 1,
-			bits: 1,
-			brHistory: -1,
-			bhr: "",
-			bht: "global",
-		},
-		{
-			level: 2,
-			bits: 2,
-			brHistory: 6,
-			bhr: "global",
-			bht: "local",
-		}
-	]
-}
+var p = JSON.parse(sessionStorage.getItem("predictor"));
+// [*] Temporal Predictor object for testing purposes [*]
+// var p = {
+// 	level: 3,
+// 	bits: 1,
+// 	brHistory: -1,
+// 	bhr: "",
+// 	bht: "global",
+// 	subps: [ // hybrid predictors
+// 		{
+// 			level: 1,
+// 			bits: 1,
+// 			brHistory: -1,
+// 			bhr: "",
+// 			bht: "global",
+// 		},
+// 		{
+// 			level: 2,
+// 			bits: 2,
+// 			brHistory: 3,
+// 			bhr: "local",
+// 			bht: "local",
+// 		}
+// 	]
+// }
 
 var jumps = [];
 var currJump = 0;
-
 let step = 0;
+let end = 0;
+let jumpIds;
+let jumpHitMiss = [];
+let currEntry, row, localHMctx, localHMChart, globalHMctx, globalHMChart;
 
+// General DOM
 const fileInput = $("#fileInput");
 const btnImport = $("#btnImport");
-const inputPattern = document.getElementById("input");
 const patternOption = $(".predefined-pattern");
 const patternInput = $("#patternInput");
 
 const histTable = $("#histTable");
 const seqTable = $("#seqTable tr:eq(0)");
 
-let jumpIds;
-let jumpHitMiss = [];
-
-// L1
+// -- L1 --
 const l1 = $("#l1");
 const l1BHT = $("#l1BHT");
 const l1BTB = $("#l1BTB");
 const L1Counters = [];
 
-// L2
+// -- L2 --
 const l2 = $("#l2");
 const l2BHR = $("#l2BHR");
 const l2BHT = $("#l2BHT");
@@ -56,8 +56,9 @@ const l2BTB = $("#l2BTB");
 let gBHR = [];
 let gBHT = [];
 let gBTB = [];
+let bhrValsPre = [];
 
-// Hybrid
+// -- Hybrid --
 const hybridDiv = $("#hybrid");
 // Predictors P1 and P2
 let ps = [
@@ -89,84 +90,31 @@ let ps = [
     }
 ];
 
-let arbiter = [];
-
-let currEntry, row;
 let isCorrectHybrid = [];
 let changeHybrid = [];
-
-// Global Hit/Miss chart
-const globalHMctx = document.getElementById("globalHM").getContext("2d");
-const globaHMChart = new Chart(globalHMctx, {
-    type: 'pie',
-    data: {
-        labels: ["Hit", "Miss"],
-        datasets: [
-			{
-				data: [0, 0],
-				backgroundColor: ["#2ecc71","#e74c3c"]
-        	}
-		]
-    },
-	options: {
-		title: {
-			display: true,
-			text: 'Global Hit/Miss'
-		},
-		responsive: true
-    }
-});
-
+let arbiter = [];
 const arbCounter = $("#arbiterCounter"); // If arbiter is global
 const choiceTable = $("#choiceTable"); // If arbiter is local
 
-// Local Hit/Miss chart
-const localHMctx = document.getElementById("localHM").getContext("2d");
-const localHMChart = new Chart(localHMctx, {
-    type: 'bar',
-    data: {
-		labels: [],
-		datasets: [
-			{
-				label: "Instructions",
-				data: [],
-			},
-			{
-				label: "Hits",
-				data: [],
-				backgroundColor: "#2ecc71"
-			},
-			{
-				label: "Misses",
-				data: [],
-				backgroundColor: "#e74c3c"
-			},
-		]
-	},
-	options: {
-		title: {
-			display: true,
-			text: 'Local Hit/Miss'
-		},
-		scales: {
-			yAxes: [{
-				ticks: {
-					beginAtZero:true
-				}
-			}]
-		}
-	}
-});
 
+// Main
 buildPredictor();
 loadPredictorDescription();
 enableInput();
 disableSimControls();
+initializeGlobalHMChart();
+initializeLocalHMChart();
 
+/**
+ * Adds the hit/miss to local and global hit/miss charts
+ * and udates them.
+ * @param {Number} id the address (id) of the instruction
+ * @param {Boolean} isHit hit <=> true, miss <=> false
+ */
 function addHM(id, isHit) {
 	// Update global HM chart
-	globaHMChart.data.datasets[0].data[isHit ? 0 : 1]++;
-    globaHMChart.update();
+	globalHMChart.data.datasets[0].data[isHit ? 0 : 1]++;
+    globalHMChart.update();
 
 	// Update local HM Chart
 	i = localHMChart.data.labels.indexOf(id);
@@ -175,6 +123,10 @@ function addHM(id, isHit) {
 	localHMChart.update();
 }
 
+/**
+ * Displays the general information of the predictor in
+ * "Predictor description" panel.
+ */
 function loadPredictorDescription() {
 	let t = $("#descriptionTable");
 	t.find("tr:eq(0) td").html(p.level === 1 ? "1 level" : (p.level === 2 ? "2 level" : `hybrid (${p.subps[0].level === 1 ? "L1" : "L2"} and ${p.subps[1].level === 1 ? "L1" : "L2"})`));
@@ -184,6 +136,11 @@ function loadPredictorDescription() {
 	t.find("tr:eq(4) td").html(p.bht === "" ? "-" : p.bht);
 }
 
+/**
+ * Updated the input used for defining a pattern
+ * with the options selected by the user.
+ * @param {Number} pattern the number associated to the pattern
+ */
 function updatePatternInput(pattern) {
 	pat = "";
 	switch(pattern) {
@@ -205,6 +162,10 @@ function updatePatternInput(pattern) {
 	patternInput.val(pat);
 }
 
+/**
+ * Processes the file input uploaded by the user.
+ * @param {*} input files uploaded by the user
+ */
 function loadDataFile(input) {
 	let file = input.files[0];
 	if (file) {
@@ -215,6 +176,12 @@ function loadDataFile(input) {
 	}
 }
 
+/**
+ * Generates a sequence with the selected pattern
+ * multiplied by the selected number of times.
+ * @returns An alert error if the number of times to
+ * multiply the pattern is not positive.
+ */
 function getPattern() {
 		let patternInput = $("#patternInput").val().trim() + " ";
 		let n = $("#patternTimes").val().trim();
@@ -227,10 +194,13 @@ function getPattern() {
 		if (!generatePattern(fullPattern)) $("#patternModal").modal("hide");
 }
 
+/**
+ * Validates the generated pattern by getPattern function and display
+ * the sequence of jumps "prettier" on the screen.
+ * @param {String} data the pattern to be validated
+ * @returns An alert error if the pattern is no valid
+ */
 function generatePattern(data) {
-	// Clear previous data
-	clearData();
-
 	let inputValues = data.trim().split(/\s+/);
 	if (inputValues.length % 2 != 0) {
 		alert("The introduced pattern is not valid.")
@@ -250,6 +220,9 @@ function generatePattern(data) {
 	$("#jumpCounter").html(`${jumps.length} jump${jumps.length > 1 ? 's' : ''} loaded`);
 }
 
+/**
+ * Fills the jump history table with the given pattern.
+ */
 function fillTable() {
 	let tHead = histTable.find("thead tr");
 	let lastRows = [];
@@ -290,11 +263,17 @@ function fillTable() {
 	}
 }
 
+/**
+ * Fills the sequence table with the given pattern.
+ */
 function fillSequence() {
 	for (jump of jumps) 
 		seqTable.append(`<td><i class="fa-solid fa-at blue-text"></i> ${jump[0]} <i class="fa-solid fa-arrow-right-long"></i> ${jump[1]}</td>`);
 }
 
+/**
+ * Executes a predictor build function depending on predictor level.
+ */
 function buildPredictor() {
 	switch(p.level) {
 		case 1:
@@ -309,16 +288,117 @@ function buildPredictor() {
 	}
 }
 
+/**
+ * Initializes a level 1 predictor.
+ * @param {number} subPred the number of subpredictor of a hybrid predictor (1 or 2, -1 if not hybrid)
+ */
 function buildL1(subPred = -1) {
-    let L1DOM = subPred >= 0 ? ps[subPred].L1DOM : l1;
+    let L1DOM, btbDOM, bhtDOM, pr;
+
+    if (subPred >= 0) {
+        L1DOM = ps[subPred].L1DOM;
+        btbDOM = ps[subPred].L1btbDOM;
+        bhtDOM = ps[subPred].L1bhtDOM;
+        pr = p.subps[subPred];
+    } else {
+        L1DOM = l1;
+        btbDOM = l1BTB;
+        bhtDOM = l1BHT;
+        pr = p;
+    }
+
+    // Display Level 1 predictor
 	L1DOM.css("display", "block");
+
+    if (pr.bht === "global") {
+        bhtDOM.find("tbody tr td").html('0'.padStart(pr.bits, '0'));
+        btbDOM.css("display", "none");
+    } else bhtDOM.css("display", "none"); 
 }
 
+/**
+ * Initializes a level 2 predictor.
+ * @param {Number} subPred the number of subpredictor of a hybrid predictor (1 or 2, -1 if not hybrid).
+ */
 function buildL2(subPred = -1) {
-    let L2DOM = subPred >= 0 ? ps[subPred].L2DOM : l2;
+    let L2DOM, pr, bhr, bht, btb, bhrDOM, bhtDOM, btbDOM;
+    
+    if (subPred >= 0) {
+        L2DOM = ps[subPred].L2DOM;
+        pr = p.subps[subPred];
+        bhr = ps[subPred].L2bhr;
+        bht = ps[subPred].L2bht;
+        btb = ps[subPred].btb;
+        bhrDOM = ps[subPred].L2bhrDOM;
+        bhtDOM = ps[subPred].L2bhtDOM;
+        btbDOM = ps[subPred].L2btbDOM;    
+    } else {
+        L2DOM = l2;
+        pr = p;
+        bhr = gBHR;
+        bht = gBHT;
+        btb = gBTB;
+        bhrDOM = l2BHR;
+        bhtDOM = l2BHT;
+        btbDOM = l2BTB;
+    }
+
+    // Display Level 2 predictor
 	L2DOM.css("display", "block");
+
+    // If bhr and bht are global, no BTB required
+	if (pr.bhr === "global" && pr.bht === "global") btbDOM.css("display", "none");
+    
+
+    if (pr.bhr === "global") {
+		// Display and load global BHR
+        for (let i = 0; i < pr.brHistory; i++) bhr.push(0)
+		bhrDOM.find("thead tr th").attr("colspan", pr.brHistory);
+        bhrDOM.find("tbody tr td").html('0'.padStart(pr.brHistory, '0'));
+
+		// Hide local BHR header and columns
+		btbDOM.find("thead tr th:eq(2)").css("display", "none");
+	} else {
+		// Hide global BHR
+		bhrDOM.css("display", "none");	
+	}
+
+    if (pr.bht === "global") {
+        // Create global BHT strcucture
+		for (let i = 0; i < Math.pow(2, pr.brHistory); i++) {
+            bht.push({
+                state: 0,
+                take: function() { return this.state >= Math.pow(2, pr.bits)/2 },
+                strongState: function() { return this.state === 0 || this.state === Math.pow(2, pr.bits)-1 }
+            });
+        }
+        // Display it in the DOM
+        for (let i = 0; i < Math.pow(2, pr.brHistory); i++) {
+            bhtDOM.find("thead tr:eq(1)").append(`<th>${i.toString(2).padStart(pr.brHistory, '0')}</th>`);
+			bhtDOM.find("tbody tr").append(`<td>${bht[i].state.toString(2).padStart(pr.bits, '0')}</td>`);
+		}
+        
+        bhtDOM.find("thead tr:eq(0) th").attr("colspan", Math.pow(2, pr.brHistory));
+		// Hide local BHT columns
+		btbDOM.find("thead tr th:eq(3)").css("display", "none");
+		btbDOM.find("tbody tr").each((i, e) =>
+			$(e).find("td").slice(3, Math.pow(2, pr.brHistory)+3).css("display", "none")
+		);
+    } else {
+		// Hide global BHT 
+		bhtDOM.css("display", "none");
+		// Expand local BHT header
+		btbDOM.find("thead tr:eq(0) th:eq(3)").attr("colspan", Math.pow(2, pr.brHistory));
+		// Create sub-headers for all the BHT
+		let h = btbDOM.find("thead tr:eq(1)");
+		for (let i = 0; i < Math.pow(2, pr.brHistory); i++) 
+			h.append(`<th>${i.toString(2).padStart(pr.brHistory, '0')}</th>`);
+	}
 }
 
+/**
+ * Initializes a hybrid predictor.
+ */
 function buildHybrid() {
 	hybridDiv.css("display", "block");
 
@@ -333,6 +413,7 @@ function buildHybrid() {
 
 /**
  * Loads data common to every type of predictor
+ * (This data has to be initializes just once).
  */
 function loadCommonData() {
     // Get a list of unique identifiers from the jumps
@@ -381,6 +462,12 @@ function loadCommonData() {
     } else loadData(-1);
 }
 
+/**
+ * Loads data common to every type of predictor
+ * (This data could be initialized more than once if the
+ * predictor is hybrid).
+ * @param {Number} subPred the number of subpredictor of a hybrid predictor (1 or 2, -1 if not hybrid)
+ */
 function loadData(subPred = -1) {
     let pr, prbht, prbhr, btb, counters;
 
@@ -453,19 +540,23 @@ function loadData(subPred = -1) {
 
 	// Enable simulator controls
 	enableSimControls();
+
+    end = 0;
 }
 
+/**
+ * Introduces the given data to the predictor tables.
+ * @param {Number} subPred the number of subpredictor of a hybrid predictor (1 or 2, -1 if not hybrid)
+ */
 function loadDataL1(subPred = -1) {
-    let btbDOM, bhtDOM, pr, pCounter;
+    let btbDOM, pr, pCounter;
     
     if (subPred >= 0) {
         btbDOM = ps[subPred].L1btbDOM;
-        bhtDOM = ps[subPred].L1bhtDOM;
         pr = p.subps[subPred];
         pCounter = ps[subPred].L1bht;
     } else {
         btbDOM = l1BTB;
-        bhtDOM = l1BHT;
         pr = p;
         pCounter = L1Counters;
     }
@@ -486,38 +577,32 @@ function loadDataL1(subPred = -1) {
             take: function() { return this.state >= Math.pow(2, pr.bits)/2},
             strongState: function() { return this.state === 0 || this.state === Math.pow(2, pr.bits)-1 }
         });
-
-        bhtDOM.find("tbody tr td").html(pCounter[0].state.toString(2).padStart(pr.bits, '0'));
-        btbDOM.css("display", "none");
-	} else {
-        bhtDOM.css("display", "none");
-    }
+	}
 }
 
+/**
+ * Introduces the given data to the predictor tables.
+ * @param {Number} subPred the number of subpredictor of a hybrid predictor (1 or 2, -1 if not hybrid)
+ */
 function loadDataL2(subPred = -1) {
-    let pr, bhr, bht, btb, bhrDOM, bhtDOM, btbDOM;
+    let pr, bhr, bht, btb, btbDOM;
 
     if (subPred >= 0) {
         pr = p.subps[subPred];
         bhr = ps[subPred].L2bhr;
         bht = ps[subPred].L2bht;
         btb = ps[subPred].btb;
-        bhrDOM = ps[subPred].L2bhrDOM;
-        bhtDOM = ps[subPred].L2bhtDOM;
         btbDOM = ps[subPred].L2btbDOM;
     } else {
         pr = p;
         bhr = gBHR;
         bht = gBHT;
         btb = gBTB;
-        bhrDOM = l2BHR;
-        bhtDOM = l2BHT;
+
         btbDOM = l2BTB;
     }
 
-	// If bhr and bht are global, no BTB required
-	if (pr.bhr === "global" && pr.bht === "global") btbDOM.css("display", "none");
-	else {
+	if (pr.bhr === "local" || pr.bht === "local") {
 		// Create one tr for each @address
 		let tbody = btbDOM.find("tbody");
 		for (e of btb) {
@@ -533,58 +618,17 @@ function loadDataL2(subPred = -1) {
 				tr.append(`<td ${pr.bht === `global` ? `style=display: none;` : ``}>${'0'.padStart(pr.bits, '0')}</td>`);
 			tbody.append(tr);
 		}
-	}
-	
-	if (pr.bhr === "global") {
-		// Display and load global BHR
-        for (let i = 0; i < pr.brHistory; i++) bhr.push(0)
-		bhrDOM.find("thead tr th").attr("colspan", pr.brHistory);
-		for(let i = 0; i < pr.brHistory; i++) bhrDOM.find("tbody tr").append(`<td>0</td>`);
-
-		// Hide local BHR header and columns
-		btbDOM.find("thead tr th:eq(2)").css("display", "none");
-	} else {
-		// Hide global BHR
-		bhrDOM.css("display", "none");	
-	}
-
-	if (pr.bht === "global") {
-		// Display and load global BHT
-		for (let i = 0; i < Math.pow(2, pr.brHistory); i++) 
-        bht.push({
-				state: 0,
-				take: function() { return this.state >= Math.pow(2, pr.bits)/2 },
-				strongState: function() { return this.state === 0 || this.state === Math.pow(2, pr.bits)-1 }
-			});
-
-            bhtDOM.find("thead tr:eq(0) th").attr("colspan", Math.pow(2, pr.brHistory));
-		for (let i = 0; i < Math.pow(2, pr.brHistory); i++) {
-			bhtDOM.find("thead tr:eq(1)").append(`<th>${i.toString(2).padStart(pr.brHistory, '0')}</th>`);
-			bhtDOM.find("tbody tr").append(`<td>${bht[i].state.toString(2).padStart(pr.bits, '0')}</td>`);
-		}
-
-		// Hide local BHT columns
-		btbDOM.find("thead tr th:eq(3)").css("display", "none");
-		btbDOM.find("tbody tr").each((i, e) =>
-			$(e).find("td").slice(3, Math.pow(2, pr.brHistory)+3).css("display", "none")
-		);
-	}  else {
-		// Hide global BHT 
-		bhtDOM.css("display", "none");
-		// Expand local BHT header
-		btbDOM.find("thead tr:eq(0) th:eq(3)").attr("colspan", Math.pow(2, pr.brHistory));
-		// Create sub-headers for all the BHT
-		let h = btbDOM.find("thead tr:eq(1)");
-		for (let i = 0; i < Math.pow(2, pr.brHistory); i++) 
-			h.append(`<th>${i.toString(2).padStart(pr.brHistory, '0')}</th>`);
-	}	
+	}  	
 }
 
+/**
+ * Executes the next step in the simulator.
+ */
 function next() {
 	step++;
-	if (currJump === jumps.length) return end();
-	
-    if (step < 4) { // Depending on predictor
+	if (currJump === jumps.length) return endSimulation();
+
+    if (step < 5) { // Depending on predictor
         switch (p.level) {
             case 1:
                 nextL1();	
@@ -601,24 +645,49 @@ function next() {
     }
 }
 
+/**
+ * Finishes the execution of the current instruction.
+ */
+function ffIns() {
+    if (step === 0) next();
+
+    while (step != 0 && end === 0) {
+		next();
+	}
+}
+
+/**
+ * Finishes the execution of the whole program.
+ */
+function ffProgram() {
+    $("#loader").css("display", "block");
+    setTimeout(() => {
+        while (end === 0) next();
+        $("#loader").css("display", "none");
+    }, 1);
+}
+
+/**
+ * Executes the next instruction for a level 1 predictor.
+ * @param {Number} subPred subPred the number of subpredictor of a hybrid predictor (1 or 2, -1 if not hybrid)
+ */
 function nextL1(subPred = -1) {
-    let pr, prbht, counter, bthDOM, btbDOM;
+    let pr, prbht, counter, bhtDOM, btbDOM;
 
     // Save hit/miss in array if hybrid predictor
     if (subPred >= 0) {
         pr = p.subps[subPred];
         prbht = p.subps[subPred].bht;
         counter = ps[subPred].L1bht;
-        bthDOM = ps[subPred].L1bhtDOM;
+        bhtDOM = ps[subPred].L1bhtDOM;
         btbDOM = ps[subPred].L1btbDOM;
- 
     } else {
         pr = p;
         prbht = p.bht;
         counter = L1Counters;
-        bthDOM = l1BHT;
+        bhtDOM = l1BHT;
         btbDOM = l1BTB;
-    }   
+    }  
 
 	let currCounter = prbht === "local" ? counter.find(e => e.id === jumps[currJump][0]) : counter[0];
 
@@ -626,36 +695,65 @@ function nextL1(subPred = -1) {
     let changeState = !isCorrect || (isCorrect && !currCounter.strongState());
 
 	switch(step) {
-
 		case 1: // Access to BTB or global BHT
-			if (prbht == "global") message(subPred, `The prediction for @${jumps[currJump][0]} is directly compared to the decision of the global BHT.`);
-			else message(subPred, `The address @${currCounter.id} is used to check the prediction in the BTB.`);
+			if (prbht == "global") {
+                message(subPred, `The result for @${jumps[currJump][0]} is directly compared to the prediction of the global BHT.`);
+
+                // Highlight BHT
+                hgBg(bhtDOM.find(`tbody tr td`), "warning");
+            } else {
+                message(subPred, `The address @${currCounter.id} is used to check the prediction in the BTB.`);
+
+                hgBg(btbDOM.find(`tbody tr:eq(${jumpIds.indexOf(currCounter.id)}) td:eq(2)`), "warning");
+            }
+
+            hgBg($(`#seqTable tr td:eq(${currJump})`), "primary");
 			break;
 
 		case 2: // Check if prediction/s is/are correct
-            message(subPred, `The result of the instruction @${jumps[currJump][0]} is ${jumps[currJump][1] ? `` : `not`} to take the branch (${jumps[currJump][1]}), and the BHT value is ${(currCounter.state).toString(2).padStart(pr.bits, '0')}. So the prediction is ${isCorrect ? `` : `not`} correct.`);
+            message(subPred, `The result of the instruction @${jumps[currJump][0]} is ${jumps[currJump][1] ? `` : `not`} to take the branch (${jumps[currJump][1]}), and the BHT value is ${(currCounter.state).toString(2).padStart(pr.bits, '0')}. So the prediction is <b>${isCorrect ? `` : `not`} correct</b>.`);
             if (subPred === -1) addHM(jumps[currJump][0], isCorrect);
             else isCorrectHybrid[subPred] = isCorrect;
+
+            // Highlight BHT
+            if (prbht === "global") hgBg(bhtDOM.find(`tbody tr td`), isCorrect ? "success" : "danger");
+            else hgBg(btbDOM.find(`tbody tr:eq(${jumpIds.indexOf(currCounter.id)}) td:eq(2)`), isCorrect ? "success" : "danger");
+            // If hybrid, highlight block
+            if (p.level === 3) hgBg($(`#p${subPred+1}`), isCorrectHybrid[subPred] ? "success" : "danger");
             break;
 
         case 3: // Update BHT. End op. if non-hybrid
             if (changeState) {
                 if (prbht === "global") {
                     message(subPred, `The global BHT counter is ${isCorrect ? (currCounter.take() ? `increased` : `decreased`) : (currCounter.take() ? `decreased` : `increased`)} to state ${String((isCorrect ? (currCounter.take() ? ++currCounter.state : --currCounter.state) : (currCounter.take() ? --currCounter.state : ++currCounter.state)).toString(2)).padStart(pr.bits, '0')}.`)
-                    bthDOM.find("tbody tr td").html(currCounter.state.toString(2).padStart(pr.bits, '0'));
+                    bhtDOM.find("tbody tr td").html(currCounter.state.toString(2).padStart(pr.bits, '0'));
                 } else {
                     message(subPred, `The local BHT is ${isCorrect ? (currCounter.take() ? `increased` : `decreased`) : (currCounter.take() ? `decreased` : `increased`)} to state ${String((isCorrect ? (currCounter.take() ? ++currCounter.state : --currCounter.state) : (currCounter.take() ? --currCounter.state : ++currCounter.state)).toString(2)).padStart(pr.bits, '0')}.`);
                     btbDOM.find(`tbody tr:eq(${counter.indexOf(currCounter)}) td:eq(2)`).html(currCounter.state.toString(2).padStart(pr.bits, '0'));
                 }
-            } else message(subPred, `The BHT stays in ${currCounter.state.toString(2).padStart(pr.bits, '0')}.`);
+            } else message(subPred, `The BHT stays in ${currCounter.state.toString(2).padStart(pr.bits, '0')} state.`);
+            break;
+        case 4:
+            // Remove highlight from BHT
+            if (prbht === "global") hgBg(bhtDOM.find(`tbody tr td`));
+            else hgBg(btbDOM.find(`tbody tr:eq(${jumpIds.indexOf(currCounter.id)}) td:eq(2)`));
+            // Remove highlight from sequence table
+            hgBg($(`#seqTable tr td:eq(${currJump})`));
+
             if (subPred === -1) {
                 step = 0;
                 currJump++;
-                if (currJump != jumps.length) message(-1, ` Next branch instruction is fetched.`, 1)
-            }     
+                if (currJump != jumps.length) message(-1, `Next branch instruction is fetched.`)
+            } else if (subPred === 1) return next();
+
+            break;
 	}
 }
 
+/**
+ * Executes the next instruction for a level 2 predictor.
+ * @param {Number} subPred subPred the number of subpredictor of a hybrid predictor (1 or 2, -1 if not hybrid)
+ */
 function nextL2(subPred = -1) {
     let pr, btb, bhr, bht, btbDOM, bhtDOM, bhrDOM, isCorrect, changeState;
     
@@ -683,7 +781,7 @@ function nextL2(subPred = -1) {
 	}
 
     let bhrVal = pr.bhr === "global" ? parseInt(bhr.join(""), 2) : parseInt(currEntry.bhr.join(""), 2);
- 
+
     if (pr.bht === "global") {
         isCorrect = bht[bhrVal].take() == jumps[currJump][1];
         changeState = !isCorrect || (isCorrect && !bht[bhrVal].strongState());
@@ -695,13 +793,30 @@ function nextL2(subPred = -1) {
 	switch(step) {
 		case 1: // Access to BTB or global BHR/BHT
 			message(subPred, `The prediction is checked using the ${(pr.bhr === "local" || pr.bht === "local") ? `address @${jumps[currJump][0]} and the` : ``} the value of the ${pr.bhr} BHR. Then, the corresponding column of the ${pr.bht} BHT is accessed.`);
+
+            hgBg($(`#seqTable tr td:eq(${currJump})`), "primary");
+
+            // Highlight BHR
+            if (pr.bhr === "global") hgBg(bhrDOM.find(`tbody tr td`), "primary");
+            else hgBg(row.find(`td:eq(2)`), "primary")
+            // Highlight BHT
+            if (pr.bht === "global") hgBg(bhtDOM.find(`tbody tr td:eq(${bhrVal})`), "primary");
+            else hgBg(row.find(`td:eq(${bhrVal+3})`), "primary");
 			break;
+
 		case 2: // Check if prediction/s is/are correct
             // Save hit/miss in array if hybrid predictor
             if (subPred != -1) isCorrectHybrid[subPred] = isCorrect;
 
-			message(subPred, `The prediction for @${jumps[currJump][0]} is ${jumps[currJump][1] ? `` : `not`} to take the branch (${jumps[currJump][1]}), and the BHT value is ${(pr.bht === `global` ? bht[bhrVal].state : currEntry.bht[bhrVal].state).toString(2).padStart(pr.bits, '0')}. So the prediction is ${isCorrect ? `` : `not`} correct.`);
+			message(subPred, `The prediction for @${jumps[currJump][0]} is ${jumps[currJump][1] ? `` : `not`} to take the branch (${jumps[currJump][1]}), and the BHT value is ${(pr.bht === `global` ? bht[bhrVal].state : currEntry.bht[bhrVal].state).toString(2).padStart(pr.bits, '0')}. So the prediction is <b>${isCorrect ? `` : `not`} correct</b>.`);
+            // Mark hit/miss if non-hybrid. Otherwise wait arbiter
 			if (subPred === -1) addHM(jumps[currJump][0], isCorrect);
+
+            // Highlight BHT
+            if (pr.bht === "global") hgBg(bhtDOM.find(`tbody tr td:eq(${bhrVal})`), isCorrect ? "success": "danger");
+            else hgBg(row.find(`td:eq(${bhrVal+3})`), isCorrect ? "success": "danger");
+            // If hybrid, highlight block
+            if (p.level === 3) hgBg($(`#p${subPred+1}`), isCorrectHybrid[subPred] ? "success" : "danger");
 			break;
 
 		case 3: // Update BHR and BHT.
@@ -715,40 +830,66 @@ function nextL2(subPred = -1) {
 					message(subPred, `The ${pr.bht} BHT state is ${isCorrect ? (currEntry.bht[bhrVal].take() ? `increased`: `decreased`) : (currEntry.bht[bhrVal].take() ? `decreased` : `increased`)} to ${currEntry.bht[bhrVal].state.toString(2).padStart(pr.bits, '0')}.`);
 				}		
 			} else message(subPred, `The ${pr.bht} BHT stays in ${(pr.bht === "global" ? bht[bhrVal].state : currEntry.bht[bhrVal].state).toString(2).padStart(pr.bits, '0')} state.`)
-			
-			// Update BR
+
+			// Update BHR (but first store previous value for removing the highlight later)
+            bhrValsPre[subPred < 1 ? 0 : subPred] = bhrVal;
+
 			if (pr.bhr === "global") {
 				bhr.shift();
 				bhr.push(jumps[currJump][1]);
-				for (let i = 0; i < pr.brHistory; i++)
-                    bhrDOM.find(`td:eq(${i})`).html(bhr[i]);		
+                bhrDOM.find("tbody tr td").html(bhr.join(""));
 			} else {
 				currEntry.bhr.shift();
 				currEntry.bhr.push(jumps[currJump][1]);
-				row.find(`td:eq(2)`).html(currEntry.bhr.join("").padStart(pr.brHistory, '0'));
+				row.find(`td:eq(2)`).html(currEntry.bhr.join(""));
 			}
 
 			message(-1, ` ${pr.bhr.charAt(0).toUpperCase() + pr.bhr.slice(1)} BHR is shifted to ${(pr.bhr === "global" ? bhr.join("") : currEntry.bhr.join("")).padStart(pr.brHistory, '0')}.`, 1);
-
-            if (subPred < 1) {
-                step = 0;
-                if (++currJump != jumps.length) message(subPred, ` Next branch instruction is fetched.`, 1)
-            }
 			break;
+
+        case 4:
+            // Remove BHR DOM highlight
+            if (pr.bhr === "global") hgBg(bhrDOM.find(`tbody tr td`));
+            else hgBg(row.find(`td:eq(2)`))
+            // Remove BHT DOM highlight
+            if (subPred < 1) bhrValPre = bhrValsPre[0];
+            else bhrValPre = bhrValsPre[subPred];
+            if (pr.bht === "global") hgBg(bhtDOM.find(`tbody tr td:eq(${bhrValPre})`));
+            else hgBg(row.find(`td:eq(${bhrValPre+3})`));
+            // Remove sequence table highlight
+            hgBg($(`#seqTable tr td:eq(${currJump})`));
+
+            if (subPred === -1) {
+                step = 0;
+                if (++currJump != jumps.length) message(subPred, `Next branch instruction is fetched.`)
+            } else if (subPred === 1) return next();
+
+            break;
 	}
 }
 
+/**
+ * Executes the next instruction for a hybrid predictor, but only
+ * steps related to the arbiter.
+ */
 function nextArbiter() {
     let currArbiter = p.bht === "global" ? arbiter[0] : arbiter.find(a => a.id === jumps[currJump][0]);
-    let arbiterDOM = p.bht === "global" ? arbCounter : choiceTable.find(`tbody tr:eq(${arbiter.indexOf(currArbiter)}) td:eq(1)`);
-    console.log(arbiter.indexOf(currArbiter))
+    let arbiterDOM = p.bht === "global" ? arbCounter.find("tbody tr td") : choiceTable.find(`tbody tr:eq(${arbiter.indexOf(currArbiter)}) td:eq(1)`);
 
     switch(step) {
-        case 4: // (if-hybrid) use arbiter to select prediction
-            message(-1, `Since arbiter decisión was to use the prediction of predictor ${+currArbiter.take() + 1} (${currArbiter.state.toString(2).padStart(p.bits, '0')}), the result of the prediction is ${isCorrectHybrid[+currArbiter.take()] ? "correct" : "wrong"}.`);
+        case 5: // (if-hybrid) use arbiter to select prediction
+            message(-1, `Since arbiter decisión was to use the prediction of predictor ${+currArbiter.take() + 1} (${currArbiter.state.toString(2).padStart(p.bits, '0')}), the result of the prediction is <b>${isCorrectHybrid[+currArbiter.take()] ? "correct" : "wrong"}</b>.`);
+            addHM(jumps[currJump][0], isCorrectHybrid[+currArbiter.take()]);
+
+            // Highlight arbiter selection
+            hgBg(arbiterDOM, "primary");
+            // Highlight result with hit/miss
+            hgBg($("#result"), isCorrectHybrid[+currArbiter.take()] ? "success" : "danger");
+            // Update arbiter DOM block
+            $("#arbiter").html(`Arbiter = ${+currArbiter.take()}`);
 			break;
 
-        case 5: // Update arbiter
+        case 6: // Update arbiter
             selectedCorrect = isCorrectHybrid[+currArbiter.take()];
 
             // Both fail: don't change
@@ -773,42 +914,115 @@ function nextArbiter() {
                 }
             }
 
+            // Update arbiter DOM block
+            $("#arbiter").html(`Arbiter = ${+currArbiter.take()}`);
+
+            break;
+        case 7:
+            // Remove highlights from hybrid predictor
+            hgBg($("#result"));
+            hgBg($(`#p1`));
+            hgBg($(`#p2`));
+            hgBg(arbiterDOM);
+            // Update arbiter DOM block
+            $("#arbiter").html(`Arbiter`);
+
             step = 0;
             currJump++;
-            if (currJump != jumps.length) message(-1, ` Next branch instruction is fetched.`, 1);
+            if (currJump != jumps.length) message(-1, `Next branch instruction is fetched.`);
+            break;
     }
 }
 
-function clearData() {
-	jumps = [];
-
-	histTable.find("thead tr:eq(0)").empty();
-	histTable.find("tbody").empty();
-	seqTable.empty();
-
-	$("#jumpCounter").html("Waiting for input... ");
-
-	switch(p.level) {
-		case 1:
-			l1BTB.find("tbody").empty();
-			break;
-		case 2:
-			break;
-		case 3:
-			break;
-	}
-
-	step = 0;
-	enableInput();
-	disableSimControls();
+/**
+ * Alerts the user about the end of the simulation.
+ */
+function endSimulation() {
+    message(-1, "End of simulation. Use reset button to introduce more data.");
+    end = 1;
+    alert("Simulation finished");
+    disableSimControls();
 }
 
-function end() {
-	alert("Simulation finished");
+/**
+ * Initializes the global hit/miss chart.
+ */
+function initializeGlobalHMChart() {
+    // Global Hit/Miss chart
+    globalHMctx = document.getElementById("globalHM").getContext("2d");
+    globalHMChart = new Chart(globalHMctx, {
+        type: 'pie',
+        data: {
+            labels: ["Hit", "Miss"],
+            datasets: [
+                {
+                    data: [0, 0],
+                    backgroundColor: ["#2ecc71","#e74c3c"]
+                }
+            ]
+        },
+        options: {
+            title: {
+                display: true,
+                text: 'Global Hit/Miss'
+            },
+            responsive: true
+        }
+    });
 }
 
-function message(subPred, str, append = 0, type = 0) {
-    pIDPrefix = subPred >= 0 ? `Predictor ${subPred}: ` : ``;
+/**
+ * Initializes the local hit/miss chart.
+ */
+function initializeLocalHMChart () {
+    // Local Hit/Miss chart
+    localHMctx = document.getElementById("localHM").getContext("2d");
+    localHMChart = new Chart(localHMctx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: "Instructions",
+                    data: [],
+                    backgroundColor: "#85929e"
+                },
+                {
+                    label: "Hits",
+                    data: [],
+                    backgroundColor: "#2ecc71"
+                },
+                {
+                    label: "Misses",
+                    data: [],
+                    backgroundColor: "#e74c3c"
+                },
+            ]
+        },
+        options: {
+            title: {
+                display: true,
+                text: 'Local Hit/Miss'
+            },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero:true
+                    }
+                }]
+            }
+        }
+    });
+}
+
+/**
+ * Displays a message on the "simulator messages pane".
+ * @param {*} subPred the number of subpredictor of a hybrid predictor (1 or 2, -1 if not hybrid)
+ * @param {*} str the string to be displayed
+ * @param {*} append whether to append the string to the current content or not
+ */
+function message(subPred, str, append = 0) {
+    pIDPrefix = subPred >= 0 ? `<b>Predictor ${subPred}</b>: ` : ``;
 	let wrapper = $("#helper-text-wrapper");
 	if (append === 0 && (subPred === -1 || subPred === 0)) wrapper.html(`${pIDPrefix}${str}`);
 	else {   
@@ -816,6 +1030,9 @@ function message(subPred, str, append = 0, type = 0) {
     }	
 }
 
+/**
+ * Disables the input for introducing data to the simulator.
+ */
 function disableInput() {
 	// Disable input-related buttons
 	$("#btnImport, #btnGenerate").css({
@@ -830,6 +1047,9 @@ function disableInput() {
 	});
 }
 
+/**
+ * Disables the input for introducing data to the simulator.
+ */
 function enableInput() {
 	// Enable input-related buttons
 	$("#btnImport, #btnGenerate").css({
@@ -845,19 +1065,36 @@ function enableInput() {
 }
 
 function enableSimControls() {
-	$("#btnNext, #btnFastForward").css({
+	$("#btnNext, #btnFFIns, #btnFFProgram").css({
 		"pointer-events": "auto",
-		"opacity": "1"
+		"opacity": "1",
+        "color": "#4285f4"
 	});
 }
 
+/**
+ * Disables the buttons for controlling the simulator.
+ */
 function disableSimControls() {
-	$("#btnNext, #btnFastForward").css({
+	$("#btnNext, #btnFFIns, #btnFFProgram").css({
 		"pointer-events": "none",
-		"opacity": ".5"
+		"opacity": ".2",
+        "color:" : "#000000"
 	});
 }
 
+/**
+ * Changes the background of the given DOM element.
+ */
+function hgBg(e, state = "white") {
+    e.removeClass("primary-bg warning-bg success-bg danger-bg white-bg")
+    e.addClass(`${state}-bg`)
+}
+
+/**
+ * Simulates the "click" on the hidden input file for
+ * uploading data files.
+ */
 btnImport.on("click", e => {
 	fileInput.click();
 });

@@ -113,7 +113,7 @@ function connectAll() {
 function createPath(id) {
 	let newpath = document.createElementNS("http://www.w3.org/2000/svg", "path");
 	$(newpath).attr({
-		id: id,
+		id: "path"+id,
 		d: "M0 0",
 		style: "stroke: #555; stroke-width: 0.2em; fill: none; opacity: 1;"
 	});

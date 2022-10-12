@@ -121,6 +121,11 @@ body {
     transition: all .3s;
 }
 
+.no-events {
+    pointer-events: none;
+    opacity: .5;
+}
+
 .selected-card-icon {
     color: green !important;
 }
