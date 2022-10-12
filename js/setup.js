@@ -275,7 +275,7 @@ function validateHybrid() {
  */
 function launchPredictor() {
     sessionStorage.setItem("predictor", JSON.stringify(p));
-    window.location.href = "/predictor";
+    window.location.href = window.location.href + "/predictor";
 }
 
 /**
