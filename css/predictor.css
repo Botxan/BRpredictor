@@ -117,6 +117,7 @@ path {
 
 .tab-content {
     margin: -1px;
+    color: #fff;
 }
 
 .table-history {
@@ -163,12 +164,8 @@ path {
 }
 
 /* predictor card */
-.l1, .l2, .hybrid {
+.l1, .l2, .hybrid-wrapper {
     display: none;
-}
-
-.execution {
-    overflow: auto;
 }
 
 .global-table td, .global-table th {
@@ -177,12 +174,11 @@ path {
 
 /* Hybrid */
 .execution {
-    background-color: rgba(255, 255, 255,.4);
     min-width: 420px;
+    overflow: auto;
 }
 
 .hybrid-wrapper {
-    display: flex;
     justify-content: center;
     align-items: center;
     height: 100%;
@@ -282,4 +278,12 @@ path {
 
 .p-scroll {
     overflow: auto;
+}
+
+.hits-lbl {
+    color: #2ecc71;
+}
+
+.misses-lbl {
+    color:  #e74c3c;
 }

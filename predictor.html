@@ -81,7 +81,7 @@
                     </ul>
                     <div id="history" class="history tab-content">
                         <div class="tab-pane fade show active" id="sequence-history" role="tabpanel" aria-labelledby="sequence-tab">
-                            <table id="seqTable" class="seq-table table text-center table-striped text-center"><tr></tr></table>
+                            <table id="seqTable" class="seq-table table text-center text-center"><tr></tr></table>
                         </div>
                         <div id="tableHistory" class="tab-pane fade table-history" role="tabpanel" aria-labelledby="home-tab">
                             <table id="histTable" class="hist-table table table-striped table-sm text-center">
@@ -96,7 +96,7 @@
             </div>
     
             <!-- Predictor execution -->
-            <div class="execution card col-lg-6 mx-2 p-0">
+            <div id="execution" class="execution card col-lg-6 mx-2 p-0">
                 <div class="card-header">Predictor</div>
                 <div class="card-body">
                     <div id="l1" class="l1">
@@ -159,7 +159,7 @@
                             <tbody></tbody>
                         </table>
                     </div>
-                    <div class="hybrid-wrapper">
+                    <div id="hybridWrapper" class="hybrid-wrapper">
                         <div id="hybrid" class="hybrid">
                             <div class="row mb-5">
                                 <div class="col-5"></div>
@@ -195,6 +195,9 @@
                 <div class="card-header">Performance</div>
                 <div class="card-body d-flex flex-column justify-content-between">
                     <canvas id="globalHM"></canvas>
+                    <div class="text-center mt-2">
+                        <span id="hitsLbl" class="hits-lbl">Hits: 0</span> / <span id="missesLbl" class="misses-lbl">Misses: 0</span>
+                    </div>
                     <hr>
                     <canvas id="localHM"></canvas>
                 </div>

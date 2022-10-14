@@ -59,7 +59,7 @@ let gBTB = [];
 let bhrValsPre = [];
 
 // -- Hybrid --
-const hybridDiv = $("#hybrid");
+const hybridDiv = $("#hybridWrapper");
 // Predictors P1 and P2
 let ps = [
     {
@@ -112,14 +112,29 @@ initializeLocalHMChart();
  * @param {Boolean} isHit hit <=> true, miss <=> false
  */
 function addHM(id, isHit) {
-	// Update global HM chart
-	globalHMChart.data.datasets[0].data[isHit ? 0 : 1]++;
-    globalHMChart.update();
+    let data = globalHMChart.data.datasets[0].data;
 
+	// Update global HM chart
+	data[isHit ? 0 : 1]++;
+    globalHMChart.update();
+    let hitRate = Math.round(((data[0]/(data[0]+data[1]))*100) * 100) / 100;
+    let missRate = Math.round(((data[1]/(data[0]+data[1]))*100) * 100) / 100;
+    $("#hitsLbl").html(`Hits: ${data[0]} (${hitRate}%)`);
+    $("#missesLbl").html(`Misses: ${data[1]}(${missRate}%)`);
+
+    // PROBLEEEEEEMS
 	// Update local HM Chart
-	i = localHMChart.data.labels.indexOf(id);
+    let i = jumpIds.indexOf(id);
+    // Update instruction number bar
 	localHMChart.data.datasets[0].data[i]++;
+    // Update hits/miss bar
 	localHMChart.data.datasets[isHit ? 1 : 2].data[i]++;
+    // Update label (rates)
+    let hits = localHMChart.data.datasets[1].data[i];
+    let misses = localHMChart.data.datasets[2].data[i];
+    hitRate = Math.round(((hits/(hits+misses))*100) * 100) / 100;
+    missRate = Math.round(((misses/(hits+misses))*100) * 100) / 100;
+    localHMChart.data.labels[i] = (`${jumpIds[i]} (${hitRate}%/${missRate}%)`);
 	localHMChart.update();
 }
 
@@ -400,7 +415,8 @@ function buildL2(subPred = -1) {
  * Initializes a hybrid predictor.
  */
 function buildHybrid() {
-	hybridDiv.css("display", "block");
+	hybridDiv.css("display", "flex");
+    $("#execution").css("background-color", "rgba(255, 255, 255, .4)");
 
     for (let [i, subp] of p.subps.entries())
         subp.level == 1 ? buildL1(i) : buildL2(i);
@@ -421,8 +437,10 @@ function loadCommonData() {
 	jumpIds = ids.filter((v, i, a) => a.indexOf(v) === i); // indexOf finds first occurrence
 
     // Initialize charts
-	jumpIds.map(j => jumpHitMiss.push([j, 0, 0]));
-	localHMChart.data.labels = jumpIds;
+	jumpIds.map(j => {
+        jumpHitMiss.push([j, 0, 0])
+    });
+	localHMChart.data.labels = [...jumpIds];
 	localHMChart.data.datasets[0].data = new Array(jumpIds.length).fill(0);
 	localHMChart.data.datasets[1].data = new Array(jumpIds.length).fill(0);
 	localHMChart.data.datasets[2].data = new Array(jumpIds.length).fill(0);
@@ -943,7 +961,6 @@ function nextArbiter() {
 function endSimulation() {
     message(-1, "End of simulation. Use reset button to introduce more data.");
     end = 1;
-    alert("Simulation finished");
     disableSimControls();
 }
 
