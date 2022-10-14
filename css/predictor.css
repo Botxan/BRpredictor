@@ -93,12 +93,22 @@ path {
     cursor: pointer;
 }
 
+.nav-tabs {
+    background-color: rgba(0,0,0,.03);
+}
+
+.nav-link.active {
+    background-color: #4285f4 !important;
+    color: #fff !important;
+}
+
 .tabs-card {
     padding: 0;
 }
 
 .nav-link {
     padding: 11.5px;
+    background-color: transparent;
 }
 
 .tabs {
